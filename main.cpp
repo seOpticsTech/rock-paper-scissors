@@ -1,8 +1,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <iostream>
-#include "sdl_tools/Error.h"
-#include "sdl_tools/SDL_Environment.h"
+#include "Error.h"
+#include "SDL_Environment/SDL_Environment.h"
 
 using namespace std;
 
@@ -12,20 +12,19 @@ int main(int argc, char *argv[])
     const auto env = SDL_Environment(800, 600, err);
     if (err.status == failure) {
         cerr << "SDL_Environment create error: " << err.message << endl;
-    }
-    const auto renderer = env.renderer->renderer;
-
-    SDL_Texture *playerTexture = IMG_LoadTexture(renderer, "assets/player.png");
-    if (!playerTexture) {
-        cerr << "IMG_LoadTexture error: " << IMG_GetError() << endl;
         return 1;
     }
 
+    const auto playerTexture = env.renderer->loadTexture("assets/player.png", err);
+    if (err.status == failure) {
+        cerr << "SDL_Environment load error: " << err.message << endl;
+        return 1;
+    }
     int texWidth = 0;
     int texHeight = 0;
-    if (SDL_QueryTexture(playerTexture, nullptr, nullptr, &texWidth, &texHeight) != 0) {
-        cerr << "SDL_QueryTexture error: " << SDL_GetError() << endl;
-        SDL_DestroyTexture(playerTexture);
+    playerTexture.querySize(texWidth, texHeight, err);
+    if (err.status == failure) {
+        cerr << "Texture size error: " << err.message << endl;
         return 1;
     }
 
@@ -39,19 +38,18 @@ int main(int argc, char *argv[])
             }
         }
 
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderClear(renderer);
+        env.renderer->setDrawColor(0, 0, 0, 255);
+        env.renderer->clear();
 
         SDL_Rect dstRect;
         dstRect.w = texWidth;
         dstRect.h = texHeight;
         dstRect.x = (800 - texWidth) / 2;
         dstRect.y = (600 - texHeight) / 2;
-        SDL_RenderCopy(renderer, playerTexture, nullptr, &dstRect);
+        env.renderer->copy(playerTexture, nullptr, &dstRect);
 
-        SDL_RenderPresent(renderer);
+        env.renderer->present();
     }
 
-    SDL_DestroyTexture(playerTexture);
     return 0;
 }

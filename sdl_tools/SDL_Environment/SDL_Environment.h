@@ -4,8 +4,8 @@
 
 #ifndef GAME_SDL_ENVIRONMENT_H
 #define GAME_SDL_ENVIRONMENT_H
-#include "Renderer.h"
-#include "Window.h"
+#include "Renderer/Renderer.h"
+#include "Window/Window.h"
 #include "Error.h"
 
 

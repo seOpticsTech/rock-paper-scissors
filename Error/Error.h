@@ -9,8 +9,10 @@
 
 using namespace std;
 
-constexpr bool success=true;
-constexpr bool failure=false;
+enum Status {
+    success,
+    failure
+};
 
 
 class Error {
@@ -25,7 +27,7 @@ class Error {
         Error& operator=(const string& msg);
         Error& operator=(const char* msg);
         string message;
-        bool status;
+        Status status;
 };
 
 
