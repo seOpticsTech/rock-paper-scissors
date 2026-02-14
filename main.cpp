@@ -45,7 +45,11 @@ int main(int argc, char *argv[])
 
     while (env.running) {
         while (SDL_PollEvent(&event)) {
-            err = typeToHandler[event.type](env);
+            eventHandler handle = typeToHandler[event.type];
+            if (handle == nullptr) {
+                continue;
+            }
+            err = handle(env);
             if (err.status == failure) {
                 cerr << "SDL_Event type error: " << err.message << endl;
             }
