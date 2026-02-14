@@ -35,10 +35,20 @@ Texture Renderer::loadTexture(const string &filePath, Error &err) const {
     SDL_Texture* t = IMG_LoadTexture(this->renderer, filePath.c_str());
     if (t == nullptr) {
         err = Error::New(IMG_GetError());
-        return t;
+        return nullptr;
     }
 
     return t;
+}
+
+Texture Renderer::loadTexture(const string &filePath, const SDL_Rect& scope, Error &err) const {
+    SDL_Texture* t = IMG_LoadTexture(this->renderer, filePath.c_str());
+    if (t == nullptr) {
+        err = Error::New(IMG_GetError());
+        return nullptr;
+    }
+
+    return {t, scope};
 }
 
 void Renderer::setDrawColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a) const {
@@ -49,8 +59,8 @@ void Renderer::clear() const {
     SDL_RenderClear(renderer);
 }
 
-void Renderer::copy(const Texture &texture, const SDL_Rect *srcRect, const SDL_Rect *dstRect) const {
-    SDL_RenderCopy(renderer, texture.texture, srcRect, dstRect);
+void Renderer::copy(const Texture &texture, const SDL_Rect *dstRect) const {
+    SDL_RenderCopy(renderer, texture.texture, texture.getScope(), dstRect);
 }
 
 void Renderer::present() const {

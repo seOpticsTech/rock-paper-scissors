@@ -7,6 +7,8 @@ find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
 
 add_executable(game main.cpp
+        Matrix/Matrix.cpp
+        Matrix/Matrix.h
         sdl_tools/Config/Config.cpp
         sdl_tools/Config/Config.h
         sdl_tools/Window/Window.cpp

@@ -32,3 +32,9 @@ Error Error::New(const string& message) {
     error.status = failure;
     return error;
 }
+
+Error Error::Success() {
+    Error error;
+    error.status = success;
+    return error;
+}

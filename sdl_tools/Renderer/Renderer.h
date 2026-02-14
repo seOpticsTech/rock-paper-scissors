@@ -21,9 +21,10 @@ class Renderer {
     Renderer& operator=(Renderer&& other) noexcept;
     ~Renderer();
     Texture loadTexture(const string& filePath, Error& err) const;
+    Texture loadTexture(const string &filePath, const SDL_Rect& scope, Error &err) const;
     void setDrawColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a) const;
     void clear() const;
-    void copy(const Texture& texture, const SDL_Rect* srcRect, const SDL_Rect* dstRect) const;
+    void copy(const Texture& texture, const SDL_Rect* dstRect) const;
     void present() const;
     SDL_Renderer* renderer;
 };
