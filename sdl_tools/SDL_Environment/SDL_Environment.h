@@ -4,6 +4,7 @@
 
 #ifndef GAME_SDL_ENVIRONMENT_H
 #define GAME_SDL_ENVIRONMENT_H
+#include "Config/Config.h"
 #include "Renderer/Renderer.h"
 #include "Window/Window.h"
 #include "Error.h"
@@ -11,13 +12,19 @@
 
 class SDL_Environment {
     public:
-    SDL_Environment(int windowWidth, int windowHeight, Error& err);
+    SDL_Environment(const Config& config, Error& err);
+    SDL_Environment(const SDL_Environment&) = delete;
+    SDL_Environment& operator=(const SDL_Environment&) = delete;
+    SDL_Environment(SDL_Environment&& other) noexcept;
+    SDL_Environment& operator=(SDL_Environment&& other) noexcept;
     ~SDL_Environment();
 
     Window* window;
     Renderer* renderer;
     private:
-    void cleanup() const;
+    void cleanup();
+    bool sdlInitialized;
+    bool imgInitialized;
 
 };
 

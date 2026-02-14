@@ -14,6 +14,19 @@ Renderer::Renderer(const Window &w, int index, int flags, Error& err) {
     }
 }
 
+Renderer::Renderer(Renderer&& other) noexcept : renderer(other.renderer) {
+    other.renderer = nullptr;
+}
+
+Renderer& Renderer::operator=(Renderer&& other) noexcept {
+    if (this != &other) {
+        SDL_DestroyRenderer(renderer);
+        renderer = other.renderer;
+        other.renderer = nullptr;
+    }
+    return *this;
+}
+
 Renderer::~Renderer() {
     SDL_DestroyRenderer(renderer);
 }
@@ -21,7 +34,8 @@ Renderer::~Renderer() {
 Texture Renderer::loadTexture(const string &filePath, Error &err) const {
     SDL_Texture* t = IMG_LoadTexture(this->renderer, filePath.c_str());
     if (t == nullptr) {
-        err = Error::New(SDL_GetError());
+        err = Error::New(IMG_GetError());
+        return t;
     }
 
     return t;

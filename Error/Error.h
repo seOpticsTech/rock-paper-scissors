@@ -18,8 +18,6 @@ enum Status {
 class Error {
     public:
         static Error New(const string& message);
-        static Error Success(const string& message);
-
         Error();
         explicit Error(const string& message);
         explicit Error(const char* message);

@@ -15,6 +15,10 @@ using namespace std;
 class Renderer {
     public:
     Renderer(const Window& w, int index, int flags, Error& err);
+    Renderer(const Renderer&) = delete;
+    Renderer& operator=(const Renderer&) = delete;
+    Renderer(Renderer&& other) noexcept;
+    Renderer& operator=(Renderer&& other) noexcept;
     ~Renderer();
     Texture loadTexture(const string& filePath, Error& err) const;
     void setDrawColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a) const;

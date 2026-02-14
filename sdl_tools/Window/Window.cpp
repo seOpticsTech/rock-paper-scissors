@@ -17,6 +17,19 @@ Window::Window(const string& title, int x, int y, int w, int h, Uint32 flags, Er
     }
 }
 
+Window::Window(Window&& other) noexcept : window(other.window) {
+    other.window = nullptr;
+}
+
+Window& Window::operator=(Window&& other) noexcept {
+    if (this != &other) {
+        SDL_DestroyWindow(window);
+        window = other.window;
+        other.window = nullptr;
+    }
+    return *this;
+}
+
 Window::~Window() {
     SDL_DestroyWindow(window);
 }

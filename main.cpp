@@ -9,7 +9,8 @@ using namespace std;
 int main(int argc, char *argv[])
 {
     Error err;
-    const auto env = SDL_Environment(800, 600, err);
+    auto config = getDefaultConfig();
+    const auto env = SDL_Environment(config, err);
     if (err.status == failure) {
         cerr << "SDL_Environment create error: " << err.message << endl;
         return 1;

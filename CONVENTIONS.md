@@ -22,7 +22,9 @@
 - Include guards use `GAME_<NAME>_H` style.
 - Prefer `const auto` for local variables when appropriate.
 - Raw pointers are used with explicit ownership and cleanup in destructors.
+- `Status` is an unscoped enum with `success`/`failure` in the global namespace.
 
 ## Error Handling
 - Use `Error` as the standard error channel (`status` + `message`).
+- Functions only set `err` on failure; they do not clear it on success.
 - SDL failures should map to `Error::New` with the SDL error string.
