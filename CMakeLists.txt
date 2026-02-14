@@ -9,6 +9,8 @@ find_package(SDL2_image REQUIRED)
 add_executable(game main.cpp
         Matrix/Matrix.cpp
         Matrix/Matrix.h
+        Vector/Vector.cpp
+        Vector/Vector.h
         sdl_tools/Config/Config.cpp
         sdl_tools/Config/Config.h
         sdl_tools/Window/Window.cpp
@@ -20,7 +22,11 @@ add_executable(game main.cpp
         Error/Error.cpp
         Error/Error.h
         sdl_tools/Texture/Texture.cpp
-        sdl_tools/Texture/Texture.h)
+        sdl_tools/Texture/Texture.h
+        Actor/Actor.cpp
+        Actor/Actor.h
+        State/State.cpp
+        State/State.h)
 
 target_link_libraries(game
         SDL2::SDL2

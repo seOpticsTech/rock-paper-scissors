@@ -21,7 +21,6 @@ class SDL_Environment {
 
     Window* window;
     Renderer* renderer;
-    bool running;
     protected:
     void cleanup();
     bool sdlInitialized;

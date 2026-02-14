@@ -11,7 +11,6 @@ using namespace std;
 SDL_Environment::SDL_Environment(const Config& config, Error& err)
     : window(nullptr),
       renderer(nullptr),
-      running(true),
       sdlInitialized(false),
       imgInitialized(false) {
     if (SDL_Init(config.sdlInitFlags) != 0) {
@@ -57,14 +56,12 @@ SDL_Environment::SDL_Environment(const Config& config, Error& err)
 SDL_Environment::SDL_Environment(SDL_Environment&& other) noexcept
     : window(other.window),
       renderer(other.renderer),
-running(true),
       sdlInitialized(other.sdlInitialized),
       imgInitialized(other.imgInitialized) {
     other.window = nullptr;
     other.renderer = nullptr;
     other.sdlInitialized = false;
     other.imgInitialized = false;
-    other.running = false;
 }
 
 SDL_Environment& SDL_Environment::operator=(SDL_Environment&& other) noexcept {
@@ -82,7 +79,6 @@ SDL_Environment& SDL_Environment::operator=(SDL_Environment&& other) noexcept {
         other.renderer = nullptr;
         other.sdlInitialized = false;
         other.imgInitialized = false;
-        other.running = false;
     }
     return *this;
 }
