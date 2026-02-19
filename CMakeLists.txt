@@ -26,7 +26,9 @@ add_executable(game main.cpp
         Actor/Actor.cpp
         Actor/Actor.h
         State/State.cpp
-        State/State.h)
+        State/State.h
+        Actor/Actors/Player/Player.cpp
+        Actor/Actors/Player/Player.h)
 
 target_link_libraries(game
         SDL2::SDL2

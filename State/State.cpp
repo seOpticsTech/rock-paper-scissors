@@ -8,10 +8,38 @@
 
 using namespace std;
 
-typedef Error (*eventHandler)(State&);
+typedef Error (*eventHandler)(State&, const SDL_Event&);
 
-Error handleQuitEvent(State& state) {
+void State::make(const Config& config, Error& err) {
+    if (instance != nullptr) {
+        err = Error::New("Instance is already created.");
+        return;
+    }
+    instance = new State(config, err);
+}
+
+State& State::get() {
+    return *instance;
+}
+
+Error handleQuitEvent(State& state, const SDL_Event& event) {
+    static_cast<void>(event);
     state.running = false;
+    return Error::Success();
+}
+
+Error handleKeyDownEvent(State& state, const SDL_Event& event) {
+    for (pair<string, Actor*> nameActor : state.actors) {
+        Actor* actor = nameActor.second;
+        if (actor == nullptr) {
+            continue;
+        }
+        auto actionIt = actor->keyDownActions.find(event.key.keysym.sym);
+        if (actionIt == actor->keyDownActions.end() || actionIt->second == nullptr) {
+            continue;
+        }
+        actionIt->second(*actor, event);
+    }
     return Error::Success();
 }
 
@@ -66,6 +94,7 @@ void State::startEventLoop() {
     SDL_Event event;
     map<Uint32, eventHandler> typeToHandler;
     typeToHandler[SDL_QUIT] = handleQuitEvent;
+    typeToHandler[SDL_KEYDOWN] = handleKeyDownEvent;
 
     while (running) {
         while (SDL_PollEvent(&event)) {
@@ -77,7 +106,7 @@ void State::startEventLoop() {
             if (handle == nullptr) {
                 continue;
             }
-            err = handle(*this);
+            err = handle(*this, event);
             if (err.status == failure) {
                 cerr << "SDL_Event type error: " << err.message << endl;
             }

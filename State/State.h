@@ -14,12 +14,16 @@ using namespace std;
 
 class State {
     public:
+    //Static
+    static State* instance;
+    static void make(const Config& config, Error& err);
+    static State& get();
+
     // Ctors and Dtors
-    State(const Config& config, Error& err);
-    State(const State&) = delete;
-    State& operator=(const State&) = delete;
-    State(State&& other) noexcept;
-    State& operator=(State&& other) noexcept;
+    // State(const State&) = delete;
+    // State& operator=(const State&) = delete;
+    // State(State&& other) noexcept;
+    // State& operator=(State&& other) noexcept;
     ~State();
 
     // Methods
@@ -33,6 +37,9 @@ class State {
     SDL_Environment* env;
     bool running;
     map<string, Actor*> actors;
+
+    protected:
+    State(const Config& config, Error& err);
 };
 
 
