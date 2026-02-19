@@ -12,9 +12,10 @@ class Texture;
 class Animation {
 public:
     CyclicList<Texture*>::cyclic_iterator iterator;
+    int msPerFrame;
 
-    Animation() : iterator() {}
-    explicit Animation(CyclicList<Texture*>::cyclic_iterator it) : iterator(it) {}
+    Animation() : iterator(), msPerFrame(0) {}
+    explicit Animation(CyclicList<Texture*>::cyclic_iterator it, int msPerFrame) : iterator(it), msPerFrame(msPerFrame) {}
 };
 
 #endif //GAME_ANIMATION_H

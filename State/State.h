@@ -31,8 +31,8 @@ class State {
 
     // Methods
     void startEventLoop();
-    Animation loadAnimation(const string& name, std::initializer_list<string> paths, Error& err);
-    Animation loadAnimation(const string& name, std::initializer_list<pair<string, const SDL_Rect*>> frames, Error& err);
+    Animation loadAnimation(const string& name, std::initializer_list<string> paths, int msPerFrame, Error& err);
+    Animation loadAnimation(const string& name, std::initializer_list<pair<string, const SDL_Rect*>> frames, int msPerFrame, Error& err);
     Actor* addActor(const string& name, Error& err);
 
     void cleanupAnimations();
@@ -44,6 +44,7 @@ class State {
     map<string, Actor*> actors;
     int animationCleanupEveryXFrames;
     View* view;
+    int fps;
 
     protected:
     State(const Config& config, Error& err);

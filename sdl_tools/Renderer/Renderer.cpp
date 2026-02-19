@@ -54,7 +54,7 @@ Texture* Renderer::loadTexture(const string &filePath, const SDL_Rect& scope, Er
     return new Texture{t, scope};
 }
 
-Animation Renderer::loadAnimation(std::initializer_list<string> paths, Error& err) const {
+Animation Renderer::loadAnimation(std::initializer_list<string> paths, int msPerFrame, Error& err) const {
     if (paths.size() == 0) {
         err = Error::New("Animation requires at least one frame");
         return {};
@@ -80,10 +80,10 @@ Animation Renderer::loadAnimation(std::initializer_list<string> paths, Error& er
     for (Texture* frame : frames) {
         animation->push_back(frame);
     }
-    return Animation(animation->cyclic_begin());
+    return Animation(animation->cyclic_begin(), msPerFrame);
 }
 
-Animation Renderer::loadAnimation(std::initializer_list<pair<string, const SDL_Rect*>> pathesScopes, Error& err) const {
+Animation Renderer::loadAnimation(std::initializer_list<pair<string, const SDL_Rect*>> pathesScopes, int msPerFrame, Error& err) const {
     if (pathesScopes.size() == 0) {
         err = Error::New("Animation requires at least one frame");
         return {};
@@ -116,7 +116,7 @@ Animation Renderer::loadAnimation(std::initializer_list<pair<string, const SDL_R
     for (Texture* frame : frames) {
         animation->push_back(frame);
     }
-    return Animation(animation->cyclic_begin());
+    return Animation(animation->cyclic_begin(), msPerFrame);
 }
 
 void Renderer::setDrawColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a) const {

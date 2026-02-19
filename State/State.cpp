@@ -4,8 +4,10 @@
 
 #include "State.h"
 #include "Actor/Actors/View/View.h"
+#include <SDL2/SDL.h>
 #include <map>
 #include <iostream>
+#include <unordered_map>
 #include <unordered_set>
 
 using namespace std;
@@ -150,8 +152,12 @@ void State::startEventLoop() {
     typeToHandler[SDL_KEYUP] = handleKeyUpEvent;
 
     int frameCounter = 0;
+    unordered_map<string, Uint32> animationLastAdvanceMs;
+
+    const double perfFrequency = static_cast<double>(SDL_GetPerformanceFrequency());
 
     while (running) {
+        Uint64 frameStart = SDL_GetPerformanceCounter();
         while (SDL_PollEvent(&event)) {
             auto handlerIt = typeToHandler.find(event.type);
             if (handlerIt == typeToHandler.end()) {
@@ -207,7 +213,16 @@ void State::startEventLoop() {
                 if (err.status == failure) {
                     cerr << "Texture copy error: " << err.message << endl;
                 }
-                ++anim.iterator;
+                if (anim.msPerFrame <= 0) {
+                    ++anim.iterator;
+                } else {
+                    Uint32 nowMs = SDL_GetTicks();
+                    Uint32& lastAdvance = animationLastAdvanceMs[animationName];
+                    if (nowMs - lastAdvance >= static_cast<Uint32>(anim.msPerFrame)) {
+                        ++anim.iterator;
+                        lastAdvance = nowMs;
+                    }
+                }
             }
         }
 
@@ -216,6 +231,20 @@ void State::startEventLoop() {
             cleanupAnimations();
         }
         frameCounter++;
+
+        if (fps > 0) {
+            const double targetSeconds = 1.0 / static_cast<double>(fps);
+            double elapsedSeconds = (SDL_GetPerformanceCounter() - frameStart) / perfFrequency;
+            if (elapsedSeconds < targetSeconds) {
+                double remainingSeconds = targetSeconds - elapsedSeconds;
+                Uint32 delayMs = static_cast<Uint32>(remainingSeconds * 1000.0);
+                if (delayMs > 0) {
+                    SDL_Delay(delayMs);
+                }
+                while (((SDL_GetPerformanceCounter() - frameStart) / perfFrequency) < targetSeconds) {
+                }
+            }
+        }
     }
 }
 
@@ -229,12 +258,12 @@ Actor* State::addActor(const string& name, Error& err) {
     return a;
 }
 
-Animation State::loadAnimation(const string& name, std::initializer_list<string> paths, Error& err) {
+Animation State::loadAnimation(const string& name, std::initializer_list<string> paths, int msPerFrame, Error& err) {
     if (animations.find(name) != animations.end()) {
         err = Error::New(string("Animation already exists: ") + name, Error::duplicate);
         return {};
     }
-    Animation anim = env->renderer->loadAnimation(paths, err);
+    Animation anim = env->renderer->loadAnimation(paths, msPerFrame, err);
     if (err.status == failure) {
         auto list = !anim.iterator;
         if (list != nullptr) {
@@ -249,12 +278,12 @@ Animation State::loadAnimation(const string& name, std::initializer_list<string>
     return anim;
 }
 
-Animation State::loadAnimation(const string& name, std::initializer_list<pair<string, const SDL_Rect*>> frames, Error& err) {
+Animation State::loadAnimation(const string& name, std::initializer_list<pair<string, const SDL_Rect*>> frames, int msPerFrame, Error& err) {
     if (animations.find(name) != animations.end()) {
         err = Error::New(string("Animation already exists: ") + name, Error::duplicate);
         return {};
     }
-    Animation anim = env->renderer->loadAnimation(frames, err);
+    Animation anim = env->renderer->loadAnimation(frames, msPerFrame, err);
     if (err.status == failure) {
         auto list = !anim.iterator;
         if (list != nullptr) {

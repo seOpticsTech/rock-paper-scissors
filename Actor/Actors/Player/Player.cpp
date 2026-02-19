@@ -28,7 +28,7 @@ Player::Player(Error& err) : actor(nullptr) {
         return;
     }
 
-    state.loadAnimation("player", {"./assets/player.png", "./assets/red-square.png"}, err);
+    state.loadAnimation("player", {"./assets/player.png", "./assets/red-square.png"}, 0, err);
     if (err.status == failure && err.type != Error::duplicate) {
         return;
     }

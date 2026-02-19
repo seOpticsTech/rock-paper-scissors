@@ -17,6 +17,7 @@ int main()
         return 1;
     }
     State& state = State::get();
+    state.fps = 60;
 
     Player p(err);
     if (err.status == failure) {
