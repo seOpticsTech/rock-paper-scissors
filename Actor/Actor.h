@@ -7,6 +7,7 @@
 #include "Texture/Texture.h"
 #include "Vector/Vector.h"
 #include <map>
+#include <memory>
 #include <string>
 
 
@@ -21,7 +22,7 @@ public:
     Vector acceleration;
 
     string currentTexture;
-    map<string, Texture> textures;
+    map<string, Texture*> textures;
 };
 
 

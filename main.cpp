@@ -12,11 +12,18 @@ int main(int argc, char *argv[])
     Error err;
     const auto config = getDefaultConfig();
     State state(config, err);
+
     if (err.status == failure) {
         cerr << "SDL_Environment create error: " << err.message << endl;
         return 1;
     }
 
+    auto player = state.addActor("player");
+    player->textures["main"] = state.loadTexture("player", "./assets/player.png", err);
+    if (err.status == failure) {
+            cerr << "Texture load failed: " << err.message << endl;
+        return 1;
+    }
     state.startEventLoop();
     return 0;
 }

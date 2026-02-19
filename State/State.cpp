@@ -16,24 +16,29 @@ Error handleQuitEvent(State& state) {
 }
 
 State::State(const Config& config, Error& err)
-    : env(new SDL_Environment(config, err)), running(true), actors() {}
+    : textures(), env(new SDL_Environment(config, err)), running(true), actors() {}
 
 State::State(State&& other) noexcept
-    : env(other.env), running(other.running), actors(move(other.actors)) {
+    : textures(move(other.textures)), env(other.env), running(other.running), actors(move(other.actors)) {
     other.env = nullptr;
     other.running = false;
 }
 
 State& State::operator=(State&& other) noexcept {
     if (this != &other) {
-        for (Actor* actor : actors) {
-            delete actor;
+        for (pair<string, Actor*> actor : actors) {
+            delete actor.second;
+        }
+        for (pair<string, Texture*> texture : textures) {
+            delete texture.second;
         }
         actors.clear();
+        textures.clear();
         delete env;
         env = other.env;
         running = other.running;
         actors = move(other.actors);
+        textures = move(other.textures);
         other.env = nullptr;
         other.running = false;
     }
@@ -41,8 +46,11 @@ State& State::operator=(State&& other) noexcept {
 }
 
 State::~State() {
-    for (Actor* actor : actors) {
-        delete actor;
+    for (pair<string, Actor*> actor : actors) {
+        delete actor.second;
+    }
+    for (pair<string, Texture*> texture : textures) {
+        delete texture.second;
     }
     actors.clear();
     delete env;
@@ -54,19 +62,9 @@ void State::startEventLoop() {
     }
 
     Error err;
-    const auto playerTexture = env->renderer->loadTexture("assets/player.png", err);
-    if (err.status == failure) {
-        cerr << "SDL_Environment load error: " << err.message << endl;
-        return;
-    }
 
     int texWidth = 0;
     int texHeight = 0;
-    playerTexture.querySize(texWidth, texHeight, err);
-    if (err.status == failure) {
-        cerr << "Texture size error: " << err.message << endl;
-        return;
-    }
 
     SDL_Event event;
     map<Uint32, eventHandler> typeToHandler;
@@ -87,19 +85,33 @@ void State::startEventLoop() {
         env->renderer->setDrawColor(0, 0, 0, 255);
         env->renderer->clear();
 
-        for (Actor* actor : actors) {
-
+        for (pair<string, Actor*> nameActor : actors) {
+            Actor* actor = nameActor.second;
             SDL_Rect dstRect;
             dstRect.w = texWidth;
             dstRect.h = texHeight;
             dstRect.x = (800 - texWidth) / 2;
             dstRect.y = (600 - texHeight) / 2;
             string cur = actor->currentTexture;
-            Texture t = actor->textures[cur];
-            env->renderer->copy(actor->textures[actor->currentTexture], &dstRect);
-
+            const Texture& t = *(actor->textures[cur]);
+            env->renderer->copy(t, &dstRect);
         }
 
         env->renderer->present();
     }
+}
+
+Actor* State::addActor(const string& name) {
+    auto a = new Actor();
+    actors[name] = a;
+    return a;
+}
+
+Texture* State::loadTexture(const string& name, const string &filePath, Error& err) {
+    Texture* t = env->renderer->loadTexture(filePath, err);
+    if (err.status == failure) {
+        return nullptr;
+    }
+    textures[name] = t;
+    return t;
 }

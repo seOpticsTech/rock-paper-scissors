@@ -12,6 +12,7 @@
 
 class State {
     public:
+    // Ctors and Dtors
     State(const Config& config, Error& err);
     State(const State&) = delete;
     State& operator=(const State&) = delete;
@@ -19,11 +20,16 @@ class State {
     State& operator=(State&& other) noexcept;
     ~State();
 
+    // Methods
     void startEventLoop();
+    Texture* loadTexture(const string &name, const string &filePath, Error &err);
+    Actor* addActor(const string& name);
 
+    // Vars
+    map<string, Texture*> textures;
     SDL_Environment* env;
     bool running;
-    vector<Actor*> actors;
+    map<string, Actor*> actors;
 };
 
 

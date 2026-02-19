@@ -3,3 +3,14 @@
 //
 
 #include "Actor.h"
+
+Actor::Actor() :
+    mass(0),
+    position(),
+    velocity(),
+    acceleration(),
+    currentTexture(),
+    textures()
+    {}
+
+Actor::~Actor() = default;

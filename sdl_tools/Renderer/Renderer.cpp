@@ -31,24 +31,24 @@ Renderer::~Renderer() {
     SDL_DestroyRenderer(renderer);
 }
 
-Texture Renderer::loadTexture(const string &filePath, Error &err) const {
+Texture* Renderer::loadTexture(const string &filePath, Error &err) const {
     SDL_Texture* t = IMG_LoadTexture(this->renderer, filePath.c_str());
     if (t == nullptr) {
         err = Error::New(IMG_GetError());
         return nullptr;
     }
 
-    return t;
+    return new Texture(t);
 }
 
-Texture Renderer::loadTexture(const string &filePath, const SDL_Rect& scope, Error &err) const {
+Texture* Renderer::loadTexture(const string &filePath, const SDL_Rect& scope, Error &err) const {
     SDL_Texture* t = IMG_LoadTexture(this->renderer, filePath.c_str());
     if (t == nullptr) {
         err = Error::New(IMG_GetError());
         return nullptr;
     }
 
-    return {t, scope};
+    return new Texture{t, scope};
 }
 
 void Renderer::setDrawColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a) const {
