@@ -7,6 +7,7 @@
 #include "Texture/Texture.h"
 #include "Vector/Vector.h"
 #include <SDL2/SDL.h>
+#include <functional>
 #include <map>
 #include <memory>
 #include <string>
@@ -48,7 +49,7 @@ public:
     Vector acceleration;
 
     string currentTexture;
-    map<string, Texture*> textures;
+    map<string, string> textures;
     map<EventGroup, map<Uint32, eventAction>> eventActions;
 };
 

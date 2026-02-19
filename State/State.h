@@ -31,11 +31,14 @@ class State {
     Texture* loadTexture(const string &name, const string &filePath, const SDL_Rect& scope, Error &err);
     Actor* addActor(const string& name, Error& err);
 
+    void cleanupTextures();
+
     // Vars
     map<string, Texture*> textures;
     SDL_Environment* env;
     bool running;
     map<string, Actor*> actors;
+    int textureCleanupEveryXFrames;
 
     protected:
     State(const Config& config, Error& err);

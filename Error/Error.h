@@ -17,7 +17,13 @@ enum Status {
 
 class Error {
     public:
-        static Error New(const string& message);
+    enum Type {
+        no,
+        general,
+        duplicate,
+    };
+    static Error New(const string& message);
+    static Error New(const string& message, Type type);
         static Error Success();
         Error();
         explicit Error(const string& message);
@@ -27,6 +33,7 @@ class Error {
         Error& operator=(const char* msg);
         string message;
         Status status;
+        Type type;
 };
 
 

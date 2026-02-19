@@ -30,11 +30,20 @@ Error& Error::operator=(const char* msg) {
 Error Error::New(const string& message) {
     Error error(message);
     error.status = failure;
+    error.type = general;
+    return error;
+}
+
+Error Error::New(const string& message, Type type) {
+    Error error(message);
+    error.status = failure;
+    error.type = type;
     return error;
 }
 
 Error Error::Success() {
     Error error;
     error.status = success;
+    error.type = no;
     return error;
 }

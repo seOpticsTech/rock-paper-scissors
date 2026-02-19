@@ -5,10 +5,11 @@
 #include "State.h"
 #include <map>
 #include <iostream>
+#include <unordered_set>
 
 using namespace std;
 
-typedef Error (*eventHandler)(State&, const SDL_Event&);
+typedef Error (*eventHandler)(const SDL_Event&);
 
 State* State::instance = nullptr;
 
@@ -34,13 +35,31 @@ State& State::get() {
     return *instance;
 }
 
-Error handleQuitEvent(State& state, const SDL_Event& event) {
+Error handleQuitEvent(const SDL_Event& event) {
     static_cast<void>(event);
+    State& state = State::get();
+    for (pair<string, Actor*> nameActor : state.actors) {
+        Actor* actor = nameActor.second;
+        if (actor == nullptr) {
+            continue;
+        }
+        auto groupIt = actor->eventActions.find(Actor::quit);
+        if (groupIt == actor->eventActions.end()) {
+            continue;
+        }
+        Uint32 key = 0;
+        auto actionIt = groupIt->second.find(key);
+        if (actionIt == groupIt->second.end() || actionIt->second == nullptr) {
+            continue;
+        }
+        actionIt->second(*actor, event);
+    }
     state.running = false;
     return Error::Success();
 }
 
-Error handleKeyDownEvent(State& state, const SDL_Event& event) {
+Error handleKeyDownEvent(const SDL_Event& event) {
+    State& state = State::get();
     for (pair<string, Actor*> nameActor : state.actors) {
         Actor* actor = nameActor.second;
         if (actor == nullptr) {
@@ -60,7 +79,8 @@ Error handleKeyDownEvent(State& state, const SDL_Event& event) {
     return Error::Success();
 }
 
-Error handleKeyUpEvent(State& state, const SDL_Event& event) {
+Error handleKeyUpEvent(const SDL_Event& event) {
+    State& state = State::get();
     for (pair<string, Actor*> nameActor : state.actors) {
         Actor* actor = nameActor.second;
         if (actor == nullptr) {
@@ -81,7 +101,7 @@ Error handleKeyUpEvent(State& state, const SDL_Event& event) {
 }
 
 State::State(const Config& config, Error& err)
-    : textures(), env(new SDL_Environment(config, err)), running(true), actors() {}
+    : textures(), env(new SDL_Environment(config, err)), running(true), actors(), textureCleanupEveryXFrames(1000) {}
 
 State::~State() {
     for (pair<string, Actor*> actor : actors) {
@@ -107,6 +127,8 @@ void State::startEventLoop() {
     typeToHandler[SDL_KEYDOWN] = handleKeyDownEvent;
     typeToHandler[SDL_KEYUP] = handleKeyUpEvent;
 
+    int frameCounter = 0;
+
     while (running) {
         while (SDL_PollEvent(&event)) {
             auto handlerIt = typeToHandler.find(event.type);
@@ -117,7 +139,7 @@ void State::startEventLoop() {
             if (handle == nullptr) {
                 continue;
             }
-            err = handle(*this, event);
+            err = handle(event);
             if (err.status == failure) {
                 cerr << "SDL_Event type error: " << err.message << endl;
             }
@@ -135,16 +157,26 @@ void State::startEventLoop() {
 
             string cur = actor->currentTexture;
             auto texIt = actor->textures.find(cur);
-            if (texIt == actor->textures.end() || texIt->second == nullptr) {
+            if (texIt == actor->textures.end()) {
                 continue;
             }
-            env->renderer->copy(texIt->second, actor->position, err);
+            const string& textureName = texIt->second;
+            auto stateTexIt = textures.find(textureName);
+            if (stateTexIt == textures.end() || stateTexIt->second == nullptr) {
+                cerr << "Missing texture: " << textureName << endl;
+                continue;
+            }
+            env->renderer->copy(stateTexIt->second, actor->position, err);
             if (err.status == failure) {
                 cerr << "Texture copy error: " << err.message << endl;
             }
         }
 
         env->renderer->present();
+        if (frameCounter % textureCleanupEveryXFrames == 0) {
+            cleanupTextures();
+        }
+        frameCounter++;
     }
 }
 
@@ -160,7 +192,7 @@ Actor* State::addActor(const string& name, Error& err) {
 
 Texture* State::loadTexture(const string& name, const string &filePath, Error& err) {
     if (textures.find(name) != textures.end()) {
-        err = Error::New(string("Texture already exists: ") + name);
+        err = Error::New(string("Texture already exists: ") + name, Error::duplicate);
         return nullptr;
     }
     Texture* t = env->renderer->loadTexture(filePath, err);
@@ -182,4 +214,24 @@ Texture* State::loadTexture(const string& name, const string &filePath, const SD
     }
     textures[name] = t;
     return t;
+}
+
+void State::cleanupTextures() {
+    unordered_set<string> activeTextures;
+    for (pair<string, Actor*> nameActor : actors) {
+        Actor* actor = nameActor.second;
+        for (pair<string, string> textureNames : actor->textures) {
+            string textureName = textureNames.second;
+            activeTextures.insert(textureName);
+        }
+    }
+
+    for (pair<string, Texture*> nameTexture : textures) {
+        string name = nameTexture.first;
+        Texture* texture = nameTexture.second;
+        if (!activeTextures.contains(name)) {
+            textures.erase(name);
+            delete texture;
+        }
+    }
 }

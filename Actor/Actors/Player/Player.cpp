@@ -5,6 +5,7 @@
 #include "Player.h"
 #include "State/State.h"
 #include <iostream>
+#include <bits/codecvt.h>
 using namespace std;
 
 void onKeyUp(Actor& actor, const SDL_Event& event) {
@@ -27,10 +28,11 @@ Player::Player(Error& err) : actor(nullptr) {
         return;
     }
 
-    actor->textures["main"] = state.loadTexture("player", "./assets/player.png", err);
-    if (err.status == failure) {
+    state.loadTexture("player", "./assets/player.png", err);
+    if (err.status == failure && err.type != Error::duplicate) {
         return;
     }
+    actor->textures["main"] = "player";
     actor->currentTexture = "main";
 
     actor->position = Vector(380, 280);
@@ -46,6 +48,9 @@ Player::Player(Error& err) : actor(nullptr) {
     actor->eventActions[Actor::keyUp][SDLK_UP] = onKeyUp;
     actor->eventActions[Actor::keyUp][SDLK_DOWN] = onKeyUp;
 
+    actor->eventActions[Actor::quit][0] = [](Actor& actor, const SDL_Event& event) {
+        cout << "Bye from player!" << endl;
+    };
 }
 
 Player::~Player() = default;
