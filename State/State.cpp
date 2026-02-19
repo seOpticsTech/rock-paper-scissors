@@ -93,8 +93,11 @@ void State::startEventLoop() {
             dstRect.x = (800 - texWidth) / 2;
             dstRect.y = (600 - texHeight) / 2;
             string cur = actor->currentTexture;
-            const Texture& t = *(actor->textures[cur]);
-            env->renderer->copy(t, &dstRect);
+            Texture* t = actor->textures[cur];
+            if (t == nullptr) {
+                continue;
+            }
+            env->renderer->copy(*t, &dstRect);
         }
 
         env->renderer->present();

@@ -20,6 +20,7 @@ int main(int argc, char *argv[])
 
     auto player = state.addActor("player");
     player->textures["main"] = state.loadTexture("player", "./assets/player.png", err);
+    player->currentTexture = "main";
     if (err.status == failure) {
             cerr << "Texture load failed: " << err.message << endl;
         return 1;
