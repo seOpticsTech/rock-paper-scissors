@@ -3,6 +3,7 @@
 //
 
 #include "Renderer.h"
+#include "Vector/Vector.h"
 #include <SDL.h>
 #include <SDL_image.h>
 
@@ -59,8 +60,12 @@ void Renderer::clear() const {
     SDL_RenderClear(renderer);
 }
 
-void Renderer::copy(const Texture &texture, const SDL_Rect *dstRect) const {
-    SDL_RenderCopy(renderer, texture.texture, texture.getScope(), dstRect);
+void Renderer::copy(Texture *texture, const Vector& position, Error& err) const {
+    SDL_Rect dst;
+    texture->querySize(dst.w, dst.h, err);
+    dst.x = static_cast<int>(position[0]);
+    dst.y = static_cast<int>(position[1]);
+    SDL_RenderCopy(renderer, texture->texture, texture->getScope(), &dst);
 }
 
 void Renderer::present() const {

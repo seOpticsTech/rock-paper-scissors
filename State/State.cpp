@@ -65,6 +65,11 @@ void State::startEventLoop() {
 
     int texWidth = 0;
     int texHeight = 0;
+    actors["player"]->textures["main"]->querySize(texWidth, texHeight, err);
+    if (err.status == failure) {
+        cerr << "Texture size error: " << err.message << endl;
+        return;
+    }
 
     SDL_Event event;
     map<Uint32, eventHandler> typeToHandler;
@@ -81,23 +86,26 @@ void State::startEventLoop() {
                 cerr << "SDL_Event type error: " << err.message << endl;
             }
         }
+        err = Error::Success();
 
         env->renderer->setDrawColor(0, 0, 0, 255);
         env->renderer->clear();
 
         for (pair<string, Actor*> nameActor : actors) {
             Actor* actor = nameActor.second;
-            SDL_Rect dstRect;
-            dstRect.w = texWidth;
-            dstRect.h = texHeight;
-            dstRect.x = (800 - texWidth) / 2;
-            dstRect.y = (600 - texHeight) / 2;
+
+            actor->position = actor->position + actor->velocity;
+            actor->velocity = actor->velocity + actor->acceleration;
+
             string cur = actor->currentTexture;
             Texture* t = actor->textures[cur];
             if (t == nullptr) {
                 continue;
             }
-            env->renderer->copy(*t, &dstRect);
+            env->renderer->copy(t, actor->position, err);
+            if (err.status == failure) {
+                cerr << "Texture copy error: " << err.message << endl;
+            }
         }
 
         env->renderer->present();
@@ -112,6 +120,15 @@ Actor* State::addActor(const string& name) {
 
 Texture* State::loadTexture(const string& name, const string &filePath, Error& err) {
     Texture* t = env->renderer->loadTexture(filePath, err);
+    if (err.status == failure) {
+        return nullptr;
+    }
+    textures[name] = t;
+    return t;
+}
+
+Texture* State::loadTexture(const string& name, const string &filePath, const SDL_Rect& scope, Error& err) {
+    Texture* t = env->renderer->loadTexture(filePath, scope, err);
     if (err.status == failure) {
         return nullptr;
     }

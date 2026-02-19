@@ -23,6 +23,7 @@ class State {
     // Methods
     void startEventLoop();
     Texture* loadTexture(const string &name, const string &filePath, Error &err);
+    Texture* loadTexture(const string &name, const string &filePath, const SDL_Rect& scope, Error &err);
     Actor* addActor(const string& name);
 
     // Vars

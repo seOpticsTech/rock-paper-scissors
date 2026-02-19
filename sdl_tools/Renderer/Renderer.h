@@ -9,6 +9,7 @@
 #include "Window/Window.h"
 #include "Error.h"
 #include "Texture/Texture.h"
+#include "Vector/Vector.h"
 
 using namespace std;
 
@@ -24,7 +25,7 @@ class Renderer {
     Texture* loadTexture(const string &filePath, const SDL_Rect& scope, Error &err) const;
     void setDrawColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a) const;
     void clear() const;
-    void copy(const Texture& texture, const SDL_Rect* dstRect) const;
+    void copy(Texture* texture, const Vector& position, Error& err) const;
     void present() const;
     SDL_Renderer* renderer;
 };
