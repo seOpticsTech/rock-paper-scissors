@@ -30,7 +30,8 @@ add_executable(game main.cpp
         Actor/Actors/Player/Player.cpp
         Actor/Actors/Player/Player.h
         Actor/Actors/View/View.cpp
-        Actor/Actors/View/View.h)
+        Actor/Actors/View/View.h
+)
 
 target_link_libraries(game
         SDL2::SDL2

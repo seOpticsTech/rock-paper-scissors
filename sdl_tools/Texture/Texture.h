@@ -6,6 +6,7 @@
 #define GAME_TEXTURE_H
 #include <SDL_render.h>
 #include "Error.h"
+#include "CyclicList/CyclicList.h"
 
 
 class Texture {
@@ -25,6 +26,8 @@ class Texture {
     protected:
     SDL_Rect* scope;
 };
+
+typedef CyclicList<Texture*> Animation;
 
 
 #endif //GAME_TEXTURE_H
