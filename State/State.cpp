@@ -63,21 +63,17 @@ void State::startEventLoop() {
 
     Error err;
 
-    int texWidth = 0;
-    int texHeight = 0;
-    actors["player"]->textures["main"]->querySize(texWidth, texHeight, err);
-    if (err.status == failure) {
-        cerr << "Texture size error: " << err.message << endl;
-        return;
-    }
-
     SDL_Event event;
     map<Uint32, eventHandler> typeToHandler;
     typeToHandler[SDL_QUIT] = handleQuitEvent;
 
     while (running) {
         while (SDL_PollEvent(&event)) {
-            eventHandler handle = typeToHandler[event.type];
+            auto handlerIt = typeToHandler.find(event.type);
+            if (handlerIt == typeToHandler.end()) {
+                continue;
+            }
+            eventHandler handle = handlerIt->second;
             if (handle == nullptr) {
                 continue;
             }
@@ -98,11 +94,11 @@ void State::startEventLoop() {
             actor->velocity = actor->velocity + actor->acceleration;
 
             string cur = actor->currentTexture;
-            Texture* t = actor->textures[cur];
-            if (t == nullptr) {
+            auto texIt = actor->textures.find(cur);
+            if (texIt == actor->textures.end() || texIt->second == nullptr) {
                 continue;
             }
-            env->renderer->copy(t, actor->position, err);
+            env->renderer->copy(texIt->second, actor->position, err);
             if (err.status == failure) {
                 cerr << "Texture copy error: " << err.message << endl;
             }
@@ -112,13 +108,21 @@ void State::startEventLoop() {
     }
 }
 
-Actor* State::addActor(const string& name) {
+Actor* State::addActor(const string& name, Error& err) {
     auto a = new Actor();
+    if (actors.contains(name)) {
+        err = Error::New(string("Actor with name") + name + " already exists");
+        return nullptr;
+    }
     actors[name] = a;
     return a;
 }
 
 Texture* State::loadTexture(const string& name, const string &filePath, Error& err) {
+    if (textures.find(name) != textures.end()) {
+        err = Error::New(string("Texture already exists: ") + name);
+        return nullptr;
+    }
     Texture* t = env->renderer->loadTexture(filePath, err);
     if (err.status == failure) {
         return nullptr;
@@ -128,6 +132,10 @@ Texture* State::loadTexture(const string& name, const string &filePath, Error& e
 }
 
 Texture* State::loadTexture(const string& name, const string &filePath, const SDL_Rect& scope, Error& err) {
+    if (textures.find(name) != textures.end()) {
+        err = Error::New(string("Texture already exists: ") + name);
+        return nullptr;
+    }
     Texture* t = env->renderer->loadTexture(filePath, scope, err);
     if (err.status == failure) {
         return nullptr;

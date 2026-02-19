@@ -9,6 +9,8 @@
 
 #include "Actor/Actor.h"
 
+using namespace std;
+
 
 class State {
     public:
@@ -24,7 +26,7 @@ class State {
     void startEventLoop();
     Texture* loadTexture(const string &name, const string &filePath, Error &err);
     Texture* loadTexture(const string &name, const string &filePath, const SDL_Rect& scope, Error &err);
-    Actor* addActor(const string& name);
+    Actor* addActor(const string& name, Error& err);
 
     // Vars
     map<string, Texture*> textures;

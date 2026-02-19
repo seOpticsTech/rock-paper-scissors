@@ -6,7 +6,10 @@
 using namespace std;
 
 void setUpPlayer(State& state, Error& err) {
-    auto player = state.addActor("player");
+    auto player = state.addActor("player", err);
+    if (err.status == failure) {
+        return;
+    }
     player->textures["main"] = state.loadTexture("player", "./assets/player.png", err);
     if (err.status == failure) {
         return;

@@ -10,6 +10,8 @@
 #include <memory>
 #include <string>
 
+using namespace std;
+
 
 class Actor {
 public:

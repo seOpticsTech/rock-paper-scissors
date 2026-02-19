@@ -63,6 +63,9 @@ void Renderer::clear() const {
 void Renderer::copy(Texture *texture, const Vector& position, Error& err) const {
     SDL_Rect dst;
     texture->querySize(dst.w, dst.h, err);
+    if (err.status == failure) {
+        return;
+    }
     dst.x = static_cast<int>(position[0]);
     dst.y = static_cast<int>(position[1]);
     SDL_RenderCopy(renderer, texture->texture, texture->getScope(), &dst);
