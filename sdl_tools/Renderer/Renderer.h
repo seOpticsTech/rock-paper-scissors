@@ -6,6 +6,7 @@
 #define GAME_RENDERER_H
 
 #include <SDL2/SDL.h>
+#include "Animation/Animation.h"
 #include "Window/Window.h"
 #include "Error.h"
 #include "Texture/Texture.h"
@@ -14,6 +15,7 @@
 #include <utility>
 
 using namespace std;
+
 
 class Renderer {
     public:

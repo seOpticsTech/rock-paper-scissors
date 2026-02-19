@@ -6,6 +6,9 @@
 #define GAME_STATE_H
 #include "SDL_Environment/SDL_Environment.h"
 #include "Actor/Actors/View/View.h"
+#include "Animation/Animation.h"
+#include <initializer_list>
+#include <utility>
 
 #include "Actor/Actor.h"
 
@@ -28,18 +31,18 @@ class State {
 
     // Methods
     void startEventLoop();
-    Texture* loadTexture(const string &name, const string &filePath, Error &err);
-    Texture* loadTexture(const string &name, const string &filePath, const SDL_Rect& scope, Error &err);
+    Animation loadAnimation(const string& name, std::initializer_list<string> paths, Error& err);
+    Animation loadAnimation(const string& name, std::initializer_list<pair<string, const SDL_Rect*>> frames, Error& err);
     Actor* addActor(const string& name, Error& err);
 
-    void cleanupTextures();
+    void cleanupAnimations();
 
     // Vars
-    map<string, Texture*> textures;
+    map<string, Animation> animations;
     SDL_Environment* env;
     bool running;
     map<string, Actor*> actors;
-    int textureCleanupEveryXFrames;
+    int animationCleanupEveryXFrames;
     View* view;
 
     protected:

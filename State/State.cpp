@@ -102,7 +102,7 @@ Error handleKeyUpEvent(const SDL_Event& event) {
 }
 
 State::State(const Config& config, Error& err)
-    : textures(), env(nullptr), running(true), actors(), textureCleanupEveryXFrames(1000), view(nullptr) {
+    : animations(), env(nullptr), running(true), actors(), animationCleanupEveryXFrames(1000), view(nullptr) {
     env = new SDL_Environment(config, err);
     if (err.status == failure) {
         err = Error::New("Failed to set up SDL_Environment: " + err.message);
@@ -121,8 +121,16 @@ State::~State() {
     for (pair<string, Actor*> actor : actors) {
         delete actor.second;
     }
-    for (pair<string, Texture*> texture : textures) {
-        delete texture.second;
+    for (pair<string, Animation> nameAnimation : animations) {
+        Animation& anim = nameAnimation.second;
+        auto list = !anim.iterator;
+        if (list == nullptr) {
+            continue;
+        }
+        for (auto it = list->begin(); it != list->end(); ++it) {
+            delete *it;
+        }
+        delete list;
     }
     actors.clear();
     delete env;
@@ -172,28 +180,40 @@ void State::startEventLoop() {
                 actor->onRender(*actor);
             }
 
-            string cur = actor->currentTexture;
+            string cur = actor->currentAnimation;
             if (!cur.empty()) {
-                auto texIt = actor->textures.find(cur);
-                if (texIt == actor->textures.end()) {
+                auto animNameIt = actor->animations.find(cur);
+                if (animNameIt == actor->animations.end()) {
                     continue;
                 }
-                const string& textureName = texIt->second;
-                auto stateTexIt = textures.find(textureName);
-                if (stateTexIt == textures.end() || stateTexIt->second == nullptr) {
-                    cerr << "Missing texture: " << textureName << endl;
+                const string& animationName = animNameIt->second;
+                auto animIt = animations.find(animationName);
+                if (animIt == animations.end()) {
+                    cerr << "Missing animation: " << animationName << endl;
                     continue;
                 }
-                env->renderer->copy(stateTexIt->second, actor->position - view->actor->position, err);
+                Animation& anim = animIt->second;
+                auto list = !anim.iterator;
+                if (list == nullptr || list->empty()) {
+                    cerr << "Missing animation frames: " << animationName << endl;
+                    continue;
+                }
+                Texture* frame = *anim.iterator;
+                if (frame == nullptr) {
+                    cerr << "Missing animation frame: " << animationName << endl;
+                    continue;
+                }
+                env->renderer->copy(frame, actor->position - view->actor->position, err);
                 if (err.status == failure) {
                     cerr << "Texture copy error: " << err.message << endl;
                 }
+                ++anim.iterator;
             }
         }
 
         env->renderer->present();
-        if (frameCounter % textureCleanupEveryXFrames == 0) {
-            cleanupTextures();
+        if (frameCounter % animationCleanupEveryXFrames == 0) {
+            cleanupAnimations();
         }
         frameCounter++;
     }
@@ -209,48 +229,75 @@ Actor* State::addActor(const string& name, Error& err) {
     return a;
 }
 
-Texture* State::loadTexture(const string& name, const string &filePath, Error& err) {
-    if (textures.find(name) != textures.end()) {
-        err = Error::New(string("Texture already exists: ") + name, Error::duplicate);
-        return nullptr;
+Animation State::loadAnimation(const string& name, std::initializer_list<string> paths, Error& err) {
+    if (animations.find(name) != animations.end()) {
+        err = Error::New(string("Animation already exists: ") + name, Error::duplicate);
+        return {};
     }
-    Texture* t = env->renderer->loadTexture(filePath, err);
+    Animation anim = env->renderer->loadAnimation(paths, err);
     if (err.status == failure) {
-        return nullptr;
+        auto list = !anim.iterator;
+        if (list != nullptr) {
+            for (auto it = list->begin(); it != list->end(); ++it) {
+                delete *it;
+            }
+            delete list;
+        }
+        return {};
     }
-    textures[name] = t;
-    return t;
+    animations[name] = anim;
+    return anim;
 }
 
-Texture* State::loadTexture(const string& name, const string &filePath, const SDL_Rect& scope, Error& err) {
-    if (textures.find(name) != textures.end()) {
-        err = Error::New(string("Texture already exists: ") + name);
-        return nullptr;
+Animation State::loadAnimation(const string& name, std::initializer_list<pair<string, const SDL_Rect*>> frames, Error& err) {
+    if (animations.find(name) != animations.end()) {
+        err = Error::New(string("Animation already exists: ") + name, Error::duplicate);
+        return {};
     }
-    Texture* t = env->renderer->loadTexture(filePath, scope, err);
+    Animation anim = env->renderer->loadAnimation(frames, err);
     if (err.status == failure) {
-        return nullptr;
+        auto list = !anim.iterator;
+        if (list != nullptr) {
+            for (auto it = list->begin(); it != list->end(); ++it) {
+                delete *it;
+            }
+            delete list;
+        }
+        return {};
     }
-    textures[name] = t;
-    return t;
+    animations[name] = anim;
+    return anim;
 }
 
-void State::cleanupTextures() {
-    unordered_set<string> activeTextures;
+void State::cleanupAnimations() {
+    unordered_set<string> activeAnimations;
     for (pair<string, Actor*> nameActor : actors) {
         Actor* actor = nameActor.second;
-        for (pair<string, string> textureNames : actor->textures) {
-            string textureName = textureNames.second;
-            activeTextures.insert(textureName);
+        for (pair<string, string> animationPair : actor->animations) {
+            string animationName = animationPair.second;
+            activeAnimations.insert(animationName);
         }
     }
 
-    for (pair<string, Texture*> nameTexture : textures) {
-        string name = nameTexture.first;
-        Texture* texture = nameTexture.second;
-        if (!activeTextures.contains(name)) {
-            textures.erase(name);
-            delete texture;
+    unordered_set<string> keysToDelete;
+    for (const pair<const string, Animation>& animationName : animations) {
+        const string& name = animationName.first;
+        const Animation& anim = animationName.second;
+        if (activeAnimations.contains(name)) {
+            continue;
         }
+
+        keysToDelete.insert(name);
+        auto list = !anim.iterator;
+        if (list != nullptr) {
+            for (Texture* frame : *list) {
+                delete frame;
+            }
+            delete list;
+        }
+    }
+
+    for (const string& key : keysToDelete) {
+        animations.erase(key);
     }
 }

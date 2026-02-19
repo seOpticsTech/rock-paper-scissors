@@ -28,12 +28,12 @@ Player::Player(Error& err) : actor(nullptr) {
         return;
     }
 
-    state.loadTexture("player", "./assets/player.png", err);
+    state.loadAnimation("player", {"./assets/player.png", "./assets/red-square.png"}, err);
     if (err.status == failure && err.type != Error::duplicate) {
         return;
     }
-    actor->textures["main"] = "player";
-    actor->currentTexture = "main";
+    actor->animations["main"] = "player";
+    actor->currentAnimation = "main";
 
     actor->position = Vector(380, 280);
     actor->acceleration = Vector(0, 0);

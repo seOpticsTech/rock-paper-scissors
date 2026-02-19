@@ -48,8 +48,8 @@ public:
     Vector velocity;
     Vector acceleration;
 
-    string currentTexture;
-    map<string, string> textures;
+    string currentAnimation;
+    map<string, string> animations;
     map<EventGroup, map<Uint32, eventAction>> eventActions;
     function<void(Actor&)> onRender;
 };

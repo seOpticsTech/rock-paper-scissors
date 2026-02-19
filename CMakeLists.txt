@@ -23,6 +23,7 @@ add_executable(game main.cpp
         Error/Error.h
         sdl_tools/Texture/Texture.cpp
         sdl_tools/Texture/Texture.h
+        Animation/Animation.h
         Actor/Actor.cpp
         Actor/Actor.h
         State/State.cpp

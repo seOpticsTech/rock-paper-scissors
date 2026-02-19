@@ -6,6 +6,7 @@
 #include "Vector/Vector.h"
 #include <SDL.h>
 #include <SDL_image.h>
+#include <list>
 #include <vector>
 
 
@@ -79,7 +80,7 @@ Animation Renderer::loadAnimation(std::initializer_list<string> paths, Error& er
     for (Texture* frame : frames) {
         animation->push_back(frame);
     }
-    return animation->begin();
+    return Animation(animation->cyclic_begin());
 }
 
 Animation Renderer::loadAnimation(std::initializer_list<pair<string, const SDL_Rect*>> pathesScopes, Error& err) const {
@@ -115,7 +116,7 @@ Animation Renderer::loadAnimation(std::initializer_list<pair<string, const SDL_R
     for (Texture* frame : frames) {
         animation->push_back(frame);
     }
-    return animation->begin();
+    return Animation(animation->cyclic_begin());
 }
 
 void Renderer::setDrawColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a) const {

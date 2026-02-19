@@ -178,6 +178,44 @@ class CyclicList {
         friend class CyclicList;
     };
 
+    class cyclic_iterator {
+        public:
+        cyclic_iterator() : node(nullptr), head(nullptr), tail(nullptr), list(nullptr) {}
+        cyclic_iterator(Node* node, Node* head, Node* tail, CyclicList* list)
+            : node(node), head(head), tail(tail), list(list) {}
+
+        T& operator*() const { return node->value; }
+        T* operator->() const { return &node->value; }
+
+        cyclic_iterator& operator++() {
+            if (node == nullptr) {
+                return *this;
+            }
+            node = node->next;
+            return *this;
+        }
+
+        cyclic_iterator& operator--() {
+            if (node == nullptr) {
+                node = tail;
+                return *this;
+            }
+            node = node->prev;
+            return *this;
+        }
+
+        bool operator==(const cyclic_iterator& other) const { return node == other.node; }
+        bool operator!=(const cyclic_iterator& other) const { return node != other.node; }
+        CyclicList* operator!() const { return list; }
+
+        private:
+        Node* node;
+        Node* head;
+        Node* tail;
+        CyclicList* list;
+        friend class CyclicList;
+    };
+
     CyclicList() : head(nullptr), tail(nullptr), count(0) {}
 
     CyclicList(const std::vector<T>& values) : head(nullptr), tail(nullptr), count(0) {
@@ -252,6 +290,7 @@ class CyclicList {
     iterator end() { return iterator(nullptr, head, tail, this); }
     const_iterator begin() const { return const_iterator(head, head, tail, this); }
     const_iterator end() const { return const_iterator(nullptr, head, tail, this); }
+    cyclic_iterator cyclic_begin() { return cyclic_iterator(head, head, tail, this); }
 
     T& front() { return head->value; }
     const T& front() const { return head->value; }

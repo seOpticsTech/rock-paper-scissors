@@ -9,8 +9,8 @@ Actor::Actor() :
     position(),
     velocity(),
     acceleration(),
-    currentTexture(),
-    textures(),
+    currentAnimation(),
+    animations(),
     eventActions()
     {}
 
