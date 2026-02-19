@@ -54,7 +54,7 @@ const SDL_Rect* Texture::getScope() const {
 
 void Texture::querySize(int &width, int &height, Error &err) const {
     if (texture == nullptr) {
-        err = Error::New("Texture is null");
+        err = Error::New("SDL_Texture is null");
         return;
     }
 

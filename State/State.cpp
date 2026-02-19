@@ -109,11 +109,11 @@ void State::startEventLoop() {
 }
 
 Actor* State::addActor(const string& name, Error& err) {
-    auto a = new Actor();
     if (actors.contains(name)) {
-        err = Error::New(string("Actor with name") + name + " already exists");
+        err = Error::New(string("Actor with name ") + name + " already exists");
         return nullptr;
     }
+    auto a = new Actor();
     actors[name] = a;
     return a;
 }

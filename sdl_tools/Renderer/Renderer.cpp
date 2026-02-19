@@ -61,6 +61,10 @@ void Renderer::clear() const {
 }
 
 void Renderer::copy(Texture *texture, const Vector& position, Error& err) const {
+    if (texture == nullptr) {
+        err = Error::New("Texture is null");
+        return;
+    }
     SDL_Rect dst;
     texture->querySize(dst.w, dst.h, err);
     if (err.status == failure) {
