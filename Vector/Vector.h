@@ -19,6 +19,7 @@ class Vector {
     double& operator[](int index);
     const double& operator[](int index) const;
     Vector operator+(const Vector& other) const;
+    Vector operator-(const Vector& other) const;
     Vector operator+(const Matrix& other) const;
     Matrix operator*(const Matrix& other) const;
     bool operator==(const Vector& other) const;

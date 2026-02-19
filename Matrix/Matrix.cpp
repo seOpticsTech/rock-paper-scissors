@@ -32,6 +32,21 @@ Matrix Matrix::operator+(const Matrix& other) const {
     return result;
 }
 
+Matrix Matrix::operator-(const Matrix& other) const {
+    if (rows != other.rows || cols != other.cols) {
+        Matrix result;
+        result.err = Error::New("Matrix add dimension mismatch");
+        return result;
+    }
+
+    Matrix result(rows, cols, 0.0);
+    const int count = rows * cols;
+    for (int i = 0; i < count; ++i) {
+        result.data[static_cast<size_t>(i)] = data[static_cast<size_t>(i)] - other.data[static_cast<size_t>(i)];
+    }
+    return result;
+}
+
 Matrix Matrix::operator*(const Matrix& other) const {
     if (cols != other.rows) {
         Matrix result;

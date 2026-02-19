@@ -3,6 +3,7 @@
 //
 
 #include "State.h"
+#include "Actor/Actors/View/View.h"
 #include <map>
 #include <iostream>
 #include <unordered_set>
@@ -101,7 +102,20 @@ Error handleKeyUpEvent(const SDL_Event& event) {
 }
 
 State::State(const Config& config, Error& err)
-    : textures(), env(new SDL_Environment(config, err)), running(true), actors(), textureCleanupEveryXFrames(1000) {}
+    : textures(), env(nullptr), running(true), actors(), textureCleanupEveryXFrames(1000), view(nullptr) {
+    env = new SDL_Environment(config, err);
+    if (err.status == failure) {
+        err = Error::New("Failed to set up SDL_Environment: " + err.message);
+        return;
+    }
+
+    view = new View(800, 600);
+    view->actor = addActor("view", err);
+    if (err.status == failure) {
+        err = Error::New("Failed to set up View: " + err.message);
+        return;
+    }
+}
 
 State::~State() {
     for (pair<string, Actor*> actor : actors) {
@@ -154,21 +168,26 @@ void State::startEventLoop() {
 
             actor->position = actor->position + actor->velocity;
             actor->velocity = actor->velocity + actor->acceleration;
+            if (actor->onRender != nullptr) {
+                actor->onRender(*actor);
+            }
 
             string cur = actor->currentTexture;
-            auto texIt = actor->textures.find(cur);
-            if (texIt == actor->textures.end()) {
-                continue;
-            }
-            const string& textureName = texIt->second;
-            auto stateTexIt = textures.find(textureName);
-            if (stateTexIt == textures.end() || stateTexIt->second == nullptr) {
-                cerr << "Missing texture: " << textureName << endl;
-                continue;
-            }
-            env->renderer->copy(stateTexIt->second, actor->position, err);
-            if (err.status == failure) {
-                cerr << "Texture copy error: " << err.message << endl;
+            if (!cur.empty()) {
+                auto texIt = actor->textures.find(cur);
+                if (texIt == actor->textures.end()) {
+                    continue;
+                }
+                const string& textureName = texIt->second;
+                auto stateTexIt = textures.find(textureName);
+                if (stateTexIt == textures.end() || stateTexIt->second == nullptr) {
+                    cerr << "Missing texture: " << textureName << endl;
+                    continue;
+                }
+                env->renderer->copy(stateTexIt->second, actor->position - view->actor->position, err);
+                if (err.status == failure) {
+                    cerr << "Texture copy error: " << err.message << endl;
+                }
             }
         }
 

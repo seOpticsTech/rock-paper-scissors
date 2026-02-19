@@ -51,6 +51,7 @@ public:
     string currentTexture;
     map<string, string> textures;
     map<EventGroup, map<Uint32, eventAction>> eventActions;
+    function<void(Actor&)> onRender;
 };
 
 

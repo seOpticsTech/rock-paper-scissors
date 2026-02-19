@@ -17,6 +17,7 @@ class Matrix {
     double* operator[](int row);
     const double* operator[](int row) const;
     Matrix operator+(const Matrix& other) const;
+    Matrix operator-(const Matrix& other) const;
     Matrix operator*(const Matrix& other) const;
     bool operator==(const Matrix& other) const;
     static Matrix identity(int size);

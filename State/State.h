@@ -5,12 +5,13 @@
 #ifndef GAME_STATE_H
 #define GAME_STATE_H
 #include "SDL_Environment/SDL_Environment.h"
-#include <vector>
+#include "Actor/Actors/View/View.h"
 
 #include "Actor/Actor.h"
 
 using namespace std;
 
+class View;
 
 class State {
     public:
@@ -39,6 +40,7 @@ class State {
     bool running;
     map<string, Actor*> actors;
     int textureCleanupEveryXFrames;
+    View* view;
 
     protected:
     State(const Config& config, Error& err);

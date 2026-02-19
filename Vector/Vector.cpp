@@ -34,6 +34,13 @@ Vector Vector::operator+(const Vector& other) const {
     return result;
 }
 
+Vector Vector::operator-(const Vector& other) const {
+    Vector result;
+    result.matrix = matrix - other.matrix;
+    result.err = result.matrix.err;
+    return result;
+}
+
 Vector Vector::operator+(const Matrix& other) const {
     if (other.err.status == failure) {
         Vector result;
