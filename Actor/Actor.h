@@ -10,13 +10,34 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <functional>
 
 using namespace std;
 
 
 class Actor {
 public:
-    using keyDownAction = void (*)(Actor&, const SDL_Event&);
+    using eventAction = function<void(Actor&, const SDL_Event&)>;
+
+    enum EventGroup {
+        keyDown,
+        keyUp,
+        quit,
+        windowEvent,
+        mouseMotion,
+        mouseButtonDown,
+        mouseButtonUp,
+        mouseWheel,
+        textInput,
+        textEditing,
+        joystick,
+        controller,
+        touch,
+        gesture,
+        drop,
+        userEvent,
+        audioDevice
+    };
 
     Actor();
     ~Actor();
@@ -28,7 +49,7 @@ public:
 
     string currentTexture;
     map<string, Texture*> textures;
-    map<SDL_Keycode, keyDownAction> keyDownActions;
+    map<EventGroup, map<Uint32, eventAction>> eventActions;
 };
 
 

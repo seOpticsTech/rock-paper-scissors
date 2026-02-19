@@ -11,8 +11,10 @@ using namespace std;
 
 class Player {
     public:
-    Player(State& state, Error& err);
+    explicit Player(Error& err);
     ~Player();
+
+    Actor::eventAction genOnKeyDown(const Vector& v);
 
     Actor* actor;
 };

@@ -11,7 +11,7 @@ Actor::Actor() :
     acceleration(),
     currentTexture(),
     textures(),
-    keyDownActions()
+    eventActions()
     {}
 
 Actor::~Actor() = default;

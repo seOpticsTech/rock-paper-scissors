@@ -17,13 +17,12 @@ class State {
     //Static
     static State* instance;
     static void make(const Config& config, Error& err);
+    static void destroy();
     static State& get();
 
     // Ctors and Dtors
-    // State(const State&) = delete;
-    // State& operator=(const State&) = delete;
-    // State(State&& other) noexcept;
-    // State& operator=(State&& other) noexcept;
+    State(const State&) = delete;
+    State& operator=(const State&) = delete;
     ~State();
 
     // Methods

@@ -10,12 +10,24 @@ using namespace std;
 
 typedef Error (*eventHandler)(State&, const SDL_Event&);
 
+State* State::instance = nullptr;
+
 void State::make(const Config& config, Error& err) {
     if (instance != nullptr) {
         err = Error::New("Instance is already created.");
         return;
     }
     instance = new State(config, err);
+    if (err.status == failure) {
+        cerr << "Couldn't create initial state: " << err.message << endl;
+        delete instance;
+        instance = nullptr;
+    }
+}
+
+void State::destroy() {
+    delete instance;
+    instance = nullptr;
 }
 
 State& State::get() {
@@ -34,8 +46,33 @@ Error handleKeyDownEvent(State& state, const SDL_Event& event) {
         if (actor == nullptr) {
             continue;
         }
-        auto actionIt = actor->keyDownActions.find(event.key.keysym.sym);
-        if (actionIt == actor->keyDownActions.end() || actionIt->second == nullptr) {
+        auto groupIt = actor->eventActions.find(Actor::keyDown);
+        if (groupIt == actor->eventActions.end()) {
+            continue;
+        }
+        Uint32 key = static_cast<Uint32>(event.key.keysym.sym);
+        auto actionIt = groupIt->second.find(key);
+        if (actionIt == groupIt->second.end() || actionIt->second == nullptr) {
+            continue;
+        }
+        actionIt->second(*actor, event);
+    }
+    return Error::Success();
+}
+
+Error handleKeyUpEvent(State& state, const SDL_Event& event) {
+    for (pair<string, Actor*> nameActor : state.actors) {
+        Actor* actor = nameActor.second;
+        if (actor == nullptr) {
+            continue;
+        }
+        auto groupIt = actor->eventActions.find(Actor::keyUp);
+        if (groupIt == actor->eventActions.end()) {
+            continue;
+        }
+        Uint32 key = static_cast<Uint32>(event.key.keysym.sym);
+        auto actionIt = groupIt->second.find(key);
+        if (actionIt == groupIt->second.end() || actionIt->second == nullptr) {
             continue;
         }
         actionIt->second(*actor, event);
@@ -45,33 +82,6 @@ Error handleKeyDownEvent(State& state, const SDL_Event& event) {
 
 State::State(const Config& config, Error& err)
     : textures(), env(new SDL_Environment(config, err)), running(true), actors() {}
-
-State::State(State&& other) noexcept
-    : textures(move(other.textures)), env(other.env), running(other.running), actors(move(other.actors)) {
-    other.env = nullptr;
-    other.running = false;
-}
-
-State& State::operator=(State&& other) noexcept {
-    if (this != &other) {
-        for (pair<string, Actor*> actor : actors) {
-            delete actor.second;
-        }
-        for (pair<string, Texture*> texture : textures) {
-            delete texture.second;
-        }
-        actors.clear();
-        textures.clear();
-        delete env;
-        env = other.env;
-        running = other.running;
-        actors = move(other.actors);
-        textures = move(other.textures);
-        other.env = nullptr;
-        other.running = false;
-    }
-    return *this;
-}
 
 State::~State() {
     for (pair<string, Actor*> actor : actors) {
@@ -95,6 +105,7 @@ void State::startEventLoop() {
     map<Uint32, eventHandler> typeToHandler;
     typeToHandler[SDL_QUIT] = handleQuitEvent;
     typeToHandler[SDL_KEYDOWN] = handleKeyDownEvent;
+    typeToHandler[SDL_KEYUP] = handleKeyUpEvent;
 
     while (running) {
         while (SDL_PollEvent(&event)) {
