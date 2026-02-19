@@ -6,6 +6,7 @@
 #include "Vector/Vector.h"
 #include <SDL.h>
 #include <SDL_image.h>
+#include <vector>
 
 
 Renderer::Renderer(const Window &w, int index, int flags, Error& err) {
@@ -50,6 +51,71 @@ Texture* Renderer::loadTexture(const string &filePath, const SDL_Rect& scope, Er
     }
 
     return new Texture{t, scope};
+}
+
+Animation Renderer::loadAnimation(std::initializer_list<string> paths, Error& err) const {
+    if (paths.size() == 0) {
+        err = Error::New("Animation requires at least one frame");
+        return {};
+    }
+
+    list<Texture*> frames;
+    for (const string& path : paths) {
+        Texture* next = loadTexture(path, err);
+        if (err.status == failure) {
+            break;
+        }
+        frames.push_back(next);
+    }
+
+    if (err.status == failure) {
+        for (Texture* frame : frames) {
+            delete frame;
+        }
+        return {};
+    }
+
+    auto animation = new CyclicList<Texture*>();
+    for (Texture* frame : frames) {
+        animation->push_back(frame);
+    }
+    return animation->begin();
+}
+
+Animation Renderer::loadAnimation(std::initializer_list<pair<string, const SDL_Rect*>> pathesScopes, Error& err) const {
+    if (pathesScopes.size() == 0) {
+        err = Error::New("Animation requires at least one frame");
+        return {};
+    }
+
+    list<Texture*> frames;
+    for (const auto& pathScope : pathesScopes) {
+        Texture* next = nullptr;
+        const string& path = pathScope.first;
+        const SDL_Rect* scope = pathScope.second;
+        if (scope == nullptr) {
+            next = loadTexture(path, err);
+        } else {
+            next = loadTexture(path, *scope, err);
+        }
+        if (err.status == failure) {
+            break;
+        }
+        frames.push_back(next);
+    }
+
+    if (err.status == failure) {
+        for (Texture* frame : frames) {
+            delete frame;
+        }
+        return {};
+    }
+
+    auto animation = new CyclicList<Texture*>();
+    for (Texture* frame : frames) {
+        animation->push_back(frame);
+    }
+    return animation->begin();
 }
 
 void Renderer::setDrawColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a) const {

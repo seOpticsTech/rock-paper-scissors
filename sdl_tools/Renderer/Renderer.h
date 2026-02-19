@@ -10,6 +10,8 @@
 #include "Error.h"
 #include "Texture/Texture.h"
 #include "Vector/Vector.h"
+#include <initializer_list>
+#include <utility>
 
 using namespace std;
 
@@ -23,6 +25,8 @@ class Renderer {
     ~Renderer();
     Texture* loadTexture(const string& filePath, Error& err) const;
     Texture* loadTexture(const string &filePath, const SDL_Rect& scope, Error &err) const;
+    Animation loadAnimation(std::initializer_list<string> paths, Error& err) const;
+    Animation loadAnimation(std::initializer_list<pair<string, const SDL_Rect*>> pathesScopes, Error& err) const;
     void setDrawColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a) const;
     void clear() const;
     void copy(Texture* texture, const Vector& position, Error& err) const;

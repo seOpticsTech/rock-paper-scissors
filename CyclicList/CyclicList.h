@@ -94,8 +94,9 @@ class CyclicList {
     public:
     class iterator {
         public:
-        iterator() : node(nullptr), head(nullptr), tail(nullptr) {}
-        iterator(Node* node, Node* head, Node* tail) : node(node), head(head), tail(tail) {}
+        iterator() : node(nullptr), head(nullptr), tail(nullptr), list(nullptr) {}
+        iterator(Node* node, Node* head, Node* tail, CyclicList* list)
+            : node(node), head(head), tail(tail), list(list) {}
 
         T& operator*() const { return node->value; }
         T* operator->() const { return &node->value; }
@@ -123,19 +124,23 @@ class CyclicList {
 
         bool operator==(const iterator& other) const { return node == other.node; }
         bool operator!=(const iterator& other) const { return node != other.node; }
+        CyclicList* operator!() const { return list; }
 
         private:
         Node* node;
         Node* head;
         Node* tail;
+        CyclicList* list;
         friend class CyclicList;
     };
 
     class const_iterator {
         public:
-        const_iterator() : node(nullptr), head(nullptr), tail(nullptr) {}
-        const_iterator(Node* node, Node* head, Node* tail) : node(node), head(head), tail(tail) {}
-        const_iterator(const iterator& it) : node(it.node), head(it.head), tail(it.tail) {}
+        const_iterator() : node(nullptr), head(nullptr), tail(nullptr), list(nullptr) {}
+        const_iterator(Node* node, Node* head, Node* tail, const CyclicList* list)
+            : node(node), head(head), tail(tail), list(list) {}
+        const_iterator(const iterator& it)
+            : node(it.node), head(it.head), tail(it.tail), list(it.list) {}
 
         const T& operator*() const { return node->value; }
         const T* operator->() const { return &node->value; }
@@ -163,11 +168,13 @@ class CyclicList {
 
         bool operator==(const const_iterator& other) const { return node == other.node; }
         bool operator!=(const const_iterator& other) const { return node != other.node; }
+        const CyclicList* operator!() const { return list; }
 
         private:
         Node* node;
         Node* head;
         Node* tail;
+        const CyclicList* list;
         friend class CyclicList;
     };
 
@@ -241,10 +248,10 @@ class CyclicList {
     bool empty() const { return count == 0; }
     size_t size() const { return count; }
 
-    iterator begin() { return iterator(head, head, tail); }
-    iterator end() { return iterator(nullptr, head, tail); }
-    const_iterator begin() const { return const_iterator(head, head, tail); }
-    const_iterator end() const { return const_iterator(nullptr, head, tail); }
+    iterator begin() { return iterator(head, head, tail, this); }
+    iterator end() { return iterator(nullptr, head, tail, this); }
+    const_iterator begin() const { return const_iterator(head, head, tail, this); }
+    const_iterator end() const { return const_iterator(nullptr, head, tail, this); }
 
     T& front() { return head->value; }
     const T& front() const { return head->value; }
@@ -264,7 +271,7 @@ class CyclicList {
     iterator insert(iterator pos, const T& value) {
         Node* node = new Node{value, nullptr, nullptr};
         insertBeforeNode(pos.node, node);
-        return iterator(node, head, tail);
+        return iterator(node, head, tail, this);
     }
 
     iterator erase(iterator pos) {

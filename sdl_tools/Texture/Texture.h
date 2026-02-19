@@ -27,7 +27,7 @@ class Texture {
     SDL_Rect* scope;
 };
 
-typedef CyclicList<Texture*> Animation;
+typedef CyclicList<Texture*>::iterator Animation;
 
 
 #endif //GAME_TEXTURE_H
