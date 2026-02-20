@@ -46,6 +46,8 @@ class State {
     View* view;
     int fps;
 
+    function<int(SDL_Event *)> pollEvent;
+
     protected:
     State(const Config& config, Error& err);
 };

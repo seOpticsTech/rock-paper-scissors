@@ -6,7 +6,7 @@
 #define GAME_CONFIG_H
 
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
+#include <functional>
 #include <string>
 
 using namespace std;
@@ -22,6 +22,7 @@ struct Config {
     int rendererIndex;
     Uint32 rendererFlags;
     int imgInitFlags;
+    function<int(SDL_Event*)> pollEvent;
 };
 
 Config getDefaultConfig();

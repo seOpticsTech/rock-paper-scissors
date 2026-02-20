@@ -104,7 +104,7 @@ Error handleKeyUpEvent(const SDL_Event& event) {
 }
 
 State::State(const Config& config, Error& err)
-    : animations(), env(nullptr), running(true), actors(), animationCleanupEveryXFrames(1000), view(nullptr) {
+    : animations(), env(nullptr), running(true), actors(), animationCleanupEveryXFrames(1000), view(nullptr), pollEvent(config.pollEvent) {
     env = new SDL_Environment(config, err);
     if (err.status == failure) {
         err = Error::New("Failed to set up SDL_Environment: " + err.message);
@@ -158,7 +158,7 @@ void State::startEventLoop() {
 
     while (running) {
         Uint64 frameStart = SDL_GetPerformanceCounter();
-        while (SDL_PollEvent(&event)) {
+        while (pollEvent(&event)) {
             auto handlerIt = typeToHandler.find(event.type);
             if (handlerIt == typeToHandler.end()) {
                 continue;
