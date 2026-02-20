@@ -17,6 +17,7 @@ Config getDefaultConfig() {
     config.rendererIndex = -1;
     config.rendererFlags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
     config.imgInitFlags = IMG_INIT_PNG;
+    config.fps = 60;
     config.pollEvent = SDL_PollEvent;
     return config;
 }

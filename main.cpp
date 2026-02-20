@@ -41,7 +41,8 @@ int customPollEvent(SDL_Event *event) {
 int main()
 {
     Error err;
-    const auto config = getDefaultConfig();
+    auto config = getDefaultConfig();
+    config.pollEvent = customPollEvent;
 
     State::make(config, err);
     if (err.status == failure) {
@@ -49,8 +50,6 @@ int main()
         return 1;
     }
     State& state = State::get();
-    state.pollEvent = customPollEvent;
-    state.fps = 60;
 
     Player p(err);
     if (err.status == failure) {

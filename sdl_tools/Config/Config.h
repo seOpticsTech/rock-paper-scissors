@@ -22,7 +22,8 @@ struct Config {
     int rendererIndex;
     Uint32 rendererFlags;
     int imgInitFlags;
-    function<int(SDL_Event*)> pollEvent;
+    int fps;
+    function<int(SDL_Event *)> pollEvent;
 };
 
 Config getDefaultConfig();
