@@ -19,30 +19,28 @@ int customPollEvent(SDL_Event *event) {
     if (eventSet) {
         eventSet = false;
         return 0;
-    } else {
-        Uint32 nowMs = SDL_GetTicks();
-        if (nowMs - lastEventMs >= 1000) {
-            event->type = SDL_KEYDOWN;
-            event->key.state = SDL_PRESSED;
-            event->key.repeat = 0;
-            event->key.keysym.sym = leftNext ? SDLK_LEFT : SDLK_RIGHT;
-            event->key.keysym.scancode = SDL_GetScancodeFromKey(event->key.keysym.sym);
-            event->key.keysym.mod = 0;
-            leftNext = !leftNext;
-            lastEventMs = nowMs;
-            eventSet = true;
-            return 1;
-        }
-        return 0;
     }
-
+    Uint32 nowMs = SDL_GetTicks();
+    if (nowMs - lastEventMs >= 1000) {
+        event->type = SDL_KEYDOWN;
+        event->key.state = SDL_PRESSED;
+        event->key.repeat = 0;
+        event->key.keysym.sym = leftNext ? SDLK_LEFT : SDLK_RIGHT;
+        event->key.keysym.scancode = SDL_GetScancodeFromKey(event->key.keysym.sym);
+        event->key.keysym.mod = 0;
+        leftNext = !leftNext;
+        lastEventMs = nowMs;
+        eventSet = true;
+        return 1;
+    }
+    return 0;
 }
 
 int main()
 {
     Error err;
     auto config = getDefaultConfig();
-    config.pollEvent = customPollEvent;
+    // config.pollEvent = customPollEvent;
 
     State::make(config, err);
     if (err.status == failure) {
