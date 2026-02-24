@@ -32,6 +32,8 @@ add_executable(game main.cpp
         Actor/Actors/Player/Player.h
         Actor/Actors/View/View.cpp
         Actor/Actors/View/View.h
+        Actor/Actors/MiniMe/MiniMe.h
+        Actor/Actors/MiniMe/MiniMe.cpp
 )
 
 target_link_libraries(game

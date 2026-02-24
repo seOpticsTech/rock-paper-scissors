@@ -10,7 +10,6 @@ using namespace std;
 
 void onKeyUp(Actor& actor, const SDL_Event& event) {
     static_cast<void>(event);
-    actor.currentAnimation = "main";
     actor.velocity = Vector(0, 0);
 }
 
@@ -18,11 +17,6 @@ Actor::eventAction Player::genOnKeyDown(const Vector& v) {
     return [this, v](Actor& actor, const SDL_Event& event) {
         static_cast<void>(actor);
         static_cast<void>(event);
-        if (v[0] == 0) {
-            actor.currentAnimation = "red";
-        } else {
-            actor.currentAnimation = "green";
-        }
         this->actor->velocity = v;
     };
 }
@@ -34,16 +28,22 @@ Player::Player(Error& err) : actor(nullptr) {
         return;
     }
 
-    state.loadAnimation("player", {"./assets/player.png", "./assets/red-square.png"}, 0, err);
+    state.loadAnimation("rock", {"./assets/rock.png"}, 0, err);
     if (err.status == failure && err.type != Error::duplicate) {
         return;
     }
-    state.loadAnimation("green", {"./assets/player.png"}, 0, err);
-    state.loadAnimation("red", { "./assets/red-square.png"}, 0, err);
-    actor->animations["main"] = "player";
-    actor->animations["green"] = "green";
-    actor->animations["red"] = "red";
-    actor->currentAnimation = "main";
+    state.loadAnimation("paper", {"./assets/paper.png"}, 0, err);
+    if (err.status == failure && err.type != Error::duplicate) {
+        return;
+    }
+    state.loadAnimation("scissors", { "./assets/scissors.png"}, 0, err);
+    if (err.status == failure && err.type != Error::duplicate) {
+        return;
+    }
+    actor->animations["rock"] = "rock";
+    actor->animations["paper"] = "paper";
+    actor->animations["scissors"] = "scissors";
+    actor->currentAnimation = "rock";
 
     actor->position = Vector(380, 280);
     actor->acceleration = Vector(0, 0);
