@@ -133,9 +133,15 @@ void Renderer::copy(Texture *texture, const Vector& position, Error& err) const 
         return;
     }
     SDL_Rect dst;
-    texture->querySize(dst.w, dst.h, err);
-    if (err.status == failure) {
-        return;
+    const Vector* drawSize = texture->getDrawSize();
+    if (drawSize == nullptr) {
+        texture->querySize(dst.w, dst.h, err);
+        if (err.status == failure) {
+            return;
+        }
+    } else {
+        dst.w = static_cast<int>((*drawSize)[0]);
+        dst.h = static_cast<int>((*drawSize)[1]);
     }
     dst.x = static_cast<int>(position[0]);
     dst.y = static_cast<int>(position[1]);

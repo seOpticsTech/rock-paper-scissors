@@ -5,14 +5,15 @@
 #include "Texture.h"
 
 
-Texture::Texture(SDL_Texture* texture) : texture(texture), scope(nullptr) {}
+Texture::Texture(SDL_Texture* texture) : texture(texture), scope(nullptr), drawSize(nullptr) {}
 
 Texture::Texture(SDL_Texture* texture, const SDL_Rect& scope)
-    : texture(texture), scope(new SDL_Rect{scope.x, scope.y, scope.w, scope.h}) {}
+    : texture(texture), scope(new SDL_Rect{scope.x, scope.y, scope.w, scope.h}), drawSize(nullptr) {}
 
-Texture::Texture(Texture&& other) noexcept : texture(other.texture), scope(other.scope) {
+Texture::Texture(Texture&& other) noexcept : texture(other.texture), scope(other.scope), drawSize(other.drawSize) {
     other.texture = nullptr;
     other.scope = nullptr;
+    other.drawSize = nullptr;
 }
 
 Texture& Texture::operator=(Texture&& other) noexcept {
@@ -21,8 +22,10 @@ Texture& Texture::operator=(Texture&& other) noexcept {
         delete scope;
         texture = other.texture;
         scope = other.scope;
+        drawSize = other.drawSize;
         other.texture = nullptr;
         other.scope = nullptr;
+        other.drawSize = nullptr;
     }
     return *this;
 }
@@ -30,6 +33,7 @@ Texture& Texture::operator=(Texture&& other) noexcept {
 Texture::~Texture() {
     SDL_DestroyTexture(texture);
     delete scope;
+    delete drawSize;
 }
 
 void Texture::setScope(const SDL_Rect& rect) {
@@ -50,6 +54,24 @@ void Texture::setFullScope() {
 
 const SDL_Rect* Texture::getScope() const {
     return scope;
+}
+
+void Texture::setDrawSize(double width, double height) {
+    if (drawSize == nullptr) {
+        drawSize = new Vector(width, height);
+        return;
+    }
+    (*drawSize)[0] = width;
+    (*drawSize)[1] = height;
+}
+
+void Texture::clearDrawSize() {
+    delete drawSize;
+    drawSize = nullptr;
+}
+
+const Vector* Texture::getDrawSize() const {
+    return drawSize;
 }
 
 void Texture::querySize(int &width, int &height, Error &err) const {

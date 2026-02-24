@@ -5,6 +5,8 @@
 #ifndef GAME_TEXTURE_H
 #define GAME_TEXTURE_H
 #include <SDL_render.h>
+#include <SDL_rect.h>
+#include "Vector/Vector.h"
 #include "Error.h"
 #include "Animation/Animation.h"
 
@@ -22,9 +24,13 @@ class Texture {
     void setScope(const SDL_Rect& rect);
     void setFullScope();
     const SDL_Rect* getScope() const;
+    void setDrawSize(double width, double height);
+    void clearDrawSize();
+    const Vector* getDrawSize() const;
     SDL_Texture* texture;
     protected:
     SDL_Rect* scope;
+    Vector* drawSize;
 };
 
 #endif //GAME_TEXTURE_H

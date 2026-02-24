@@ -11,12 +11,18 @@ using namespace std;
 
 class Player {
     public:
+    enum Mode {
+        Rock,
+        Paper,
+        Scissors
+    };
     explicit Player(Error& err);
     ~Player();
 
     Actor::eventAction genOnKeyDown(const Vector& v);
 
     Actor* actor;
+    Mode mode;
 };
 
 
