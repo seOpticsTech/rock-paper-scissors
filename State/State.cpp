@@ -401,9 +401,6 @@ void State::removeActor(const string& name) {
     if (it == actors.end()) {
         return;
     }
-    if (it->second == view) {
-        view = nullptr;
-    }
     delete it->second;
     actors.erase(it);
 }

@@ -145,7 +145,9 @@ void Renderer::copy(Texture *texture, const Vector& position, Error& err) const 
     }
     dst.x = static_cast<int>(position[0]);
     dst.y = static_cast<int>(position[1]);
-    SDL_RenderCopy(renderer, texture->texture, texture->getScope(), &dst);
+    if (SDL_RenderCopy(renderer, texture->texture, texture->getScope(), &dst)) {
+        err = Error::New(string("Error in SDL_RenderCopy: ") + SDL_GetError());
+    }
 }
 
 void Renderer::present() const {
