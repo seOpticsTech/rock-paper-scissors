@@ -9,7 +9,7 @@
 using namespace std;
 
 
-class Player {
+class Player : public Actor {
     public:
     enum Mode {
         Rock,
@@ -21,7 +21,6 @@ class Player {
 
     Actor::eventAction genOnKeyDown(const Vector& v);
 
-    Actor* actor;
     Mode mode;
     Uint32 lastSpawnMs;
 };

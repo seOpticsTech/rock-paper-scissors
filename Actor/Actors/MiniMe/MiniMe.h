@@ -10,7 +10,7 @@
 #include "Error.h"
 
 
-class MiniMe {
+class MiniMe : public Actor {
     public:
     enum Mode {
         Rock,
@@ -20,7 +20,6 @@ class MiniMe {
     MiniMe(const SDL_Rect& pos, Player::Mode playerMode, Error& err);
     ~MiniMe();
 
-    Actor* actor;
     Mode mode;
 };
 

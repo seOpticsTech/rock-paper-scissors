@@ -51,27 +51,29 @@ int main()
     }
     State& state = State::get();
 
-    Player p1("player_1", Vector(480, 540), err);
+    Player* p1 = new Player("player_1", Vector(480, 540), err);
     if (err.status == failure) {
+        delete p1;
         cerr << "Failed to create player 1: " << err.message << endl;
         return 1;
     }
 
-    Player p2("player_2", Vector(1440, 540), err);
+    Player* p2 = new Player("player_2", Vector(1440, 540), err);
     if (err.status == failure) {
+        delete p2;
         cerr << "Failed to create player 2: " << err.message << endl;
         return 1;
     }
 
     if (state.controlMode == GAMEPAD) {
-        p1.actor->controlMode = GAMEPAD;
-        p2.actor->controlMode = GAMEPAD;
-        p1.actor->controllerId = state.controllerIds[0];
-        p2.actor->controllerId = state.controllerIds[1];
+        p1->controlMode = GAMEPAD;
+        p2->controlMode = GAMEPAD;
+        p1->controllerId = state.controllerIds[0];
+        p2->controllerId = state.controllerIds[1];
     } else {
-        p1.actor->controlMode = KEYBOARD;
-        p2.actor->controlMode = GAMEPAD;
-        p2.actor->controllerId = state.controllerIds[0];
+        p1->controlMode = KEYBOARD;
+        p2->controlMode = GAMEPAD;
+        p2->controllerId = state.controllerIds[0];
     }
 
     state.startEventLoop();

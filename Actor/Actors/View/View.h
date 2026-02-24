@@ -8,18 +8,16 @@
 
 
 #include "Actor/Actor.h"
-#include "State/State.h"
 using namespace std;
 
 
-class View {
+class View : public Actor {
 public:
     explicit View(int width, int height);
     ~View() = default;
 
     void onRender();
 
-    Actor* actor;
     int width, height;
 };
 

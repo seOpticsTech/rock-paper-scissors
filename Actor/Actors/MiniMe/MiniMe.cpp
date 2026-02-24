@@ -49,15 +49,16 @@ static void shrinkAnimationFrames(State& state, const string& animationName, Err
     } while (it != start);
 }
 
-MiniMe::MiniMe(const SDL_Rect& pos, Player::Mode playerMode, Error& err) : actor(nullptr), mode(Rock) {
+MiniMe::MiniMe(const SDL_Rect& pos, Player::Mode playerMode, Error& err) : Actor(), mode(Rock) {
     auto& state = State::get();
     static int minimeCounter = 0;
-    actor = state.addActor(string("minime_") + to_string(minimeCounter++), err);
-    if (err.status == failure) {
+    string name = string("minime_") + to_string(minimeCounter++);
+    if (state.actors.contains(name)) {
+        err = Error::New(string("Actor with name ") + name + " already exists", Error::duplicate);
         return;
     }
-    actor->position = Vector(pos.x, pos.y);
-    actor->acceleration = Vector(0, 0);
+    position = Vector(pos.x, pos.y);
+    acceleration = Vector(0, 0);
 
     const string rockAnim = "minime_rock";
     const string paperAnim = "minime_paper";
@@ -99,24 +100,26 @@ MiniMe::MiniMe(const SDL_Rect& pos, Player::Mode playerMode, Error& err) : actor
         return;
     }
 
-    actor->animations["rock"] = rockAnim;
-    actor->animations["paper"] = paperAnim;
-    actor->animations["scissors"] = scissorsAnim;
+    animations["rock"] = rockAnim;
+    animations["paper"] = paperAnim;
+    animations["scissors"] = scissorsAnim;
 
     switch (playerMode) {
         case Player::Rock:
             mode = Rock;
-            actor->currentAnimation = "rock";
+            currentAnimation = "rock";
             break;
         case Player::Paper:
             mode = Paper;
-            actor->currentAnimation = "paper";
+            currentAnimation = "paper";
             break;
         case Player::Scissors:
             mode = Scissors;
-            actor->currentAnimation = "scissors";
+            currentAnimation = "scissors";
             break;
     }
+
+    state.actors[name] = this;
 }
 
 MiniMe::~MiniMe() = default;

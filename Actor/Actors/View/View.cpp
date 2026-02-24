@@ -4,4 +4,4 @@
 
 #include "View.h"
 
-View::View(int width, int height) : actor(nullptr), width(width), height(height) {}
+View::View(int width, int height) : Actor(), width(width), height(height) {}

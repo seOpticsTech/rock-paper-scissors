@@ -228,11 +228,11 @@ State::State(const Config& config, Error& err)
     }
 
     view = new View(1920, 1080);
-    view->actor = addActor("view", err);
-    if (err.status == failure) {
-        err = Error::New("Failed to set up View: " + err.message);
+    if (actors.contains("view")) {
+        err = Error::New("Actor with name view already exists", Error::duplicate);
         return;
     }
+    actors["view"] = view;
 }
 
 State::~State() {
@@ -332,7 +332,7 @@ void State::startEventLoop() {
                     cerr << "Missing animation frame: " << animationName << endl;
                     continue;
                 }
-                env->renderer->copy(frame, actor->position - view->actor->position, err);
+                env->renderer->copy(frame, actor->position - view->position, err);
                 if (err.status == failure) {
                     cerr << "Texture copy error: " << err.message << endl;
                 }

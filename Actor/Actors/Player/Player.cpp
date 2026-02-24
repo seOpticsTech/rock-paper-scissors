@@ -9,15 +9,15 @@
 #include <iostream>
 using namespace std;
 
-void onRenderPlayer(Actor& actor, Player& player) {
+void onRenderPlayer(Player& player) {
     Uint32 nowMs = SDL_GetTicks();
     Error err;
     int width = 0;
     int height = 0;
     State& state = State::get();
-    if (!actor.currentAnimation.empty()) {
-        auto actorAnimIt = actor.animations.find(actor.currentAnimation);
-        if (actorAnimIt != actor.animations.end()) {
+    if (!player.currentAnimation.empty()) {
+        auto actorAnimIt = player.animations.find(player.currentAnimation);
+        if (actorAnimIt != player.animations.end()) {
             auto animIt = state.animations.find(actorAnimIt->second);
             if (animIt != state.animations.end()) {
                 Animation& anim = animIt->second;
@@ -41,17 +41,17 @@ void onRenderPlayer(Actor& actor, Player& player) {
     if (state.view != nullptr) {
         int viewWidth = state.view->width;
         int viewHeight = state.view->height;
-        double x = actor.position[0];
-        double y = actor.position[1];
+        double x = player.position[0];
+        double y = player.position[1];
         if (x + width < 0) {
-            actor.position[0] = static_cast<double>(viewWidth);
+            player.position[0] = static_cast<double>(viewWidth);
         } else if (x > viewWidth) {
-            actor.position[0] = static_cast<double>(-width);
+            player.position[0] = static_cast<double>(-width);
         }
         if (y + height < 0) {
-            actor.position[1] = static_cast<double>(viewHeight);
+            player.position[1] = static_cast<double>(viewHeight);
         } else if (y > viewHeight) {
-            actor.position[1] = static_cast<double>(-height);
+            player.position[1] = static_cast<double>(-height);
         }
     }
 
@@ -65,8 +65,8 @@ void onRenderPlayer(Actor& actor, Player& player) {
     int offsetX = width / 4;
     int offsetY = height / 4;
     SDL_Rect pos{
-        static_cast<int>(actor.position[0]) + offsetX,
-        static_cast<int>(actor.position[1]) + offsetY,
+        static_cast<int>(player.position[0]) + offsetX,
+        static_cast<int>(player.position[1]) + offsetY,
         0,
         0
     };
@@ -81,7 +81,7 @@ Actor::eventAction Player::genOnKeyDown(const Vector& v) {
     return [this, v](Actor& actor, const SDL_Event& event) {
         static_cast<void>(actor);
         static_cast<void>(event);
-        const Vector& current = this->actor->velocity;
+        const Vector& current = this->velocity;
         const bool movingX = current[0] != 0.0;
         const bool movingY = current[1] != 0.0;
         const bool wantsX = v[0] != 0.0;
@@ -89,15 +89,15 @@ Actor::eventAction Player::genOnKeyDown(const Vector& v) {
         if ((movingX && wantsX) || (movingY && wantsY)) {
             return;
         }
-        this->actor->velocity = v;
+        this->velocity = v;
     };
 }
 
 Player::Player(const string& name, const Vector& startPosition, Error& err)
-    : actor(nullptr), mode(Rock), lastSpawnMs(0) {
+    : Actor(), mode(Rock), lastSpawnMs(0) {
     State& state = State::get();
-    actor = state.addActor(name, err);
-    if (err.status == failure) {
+    if (state.actors.contains(name)) {
+        err = Error::New(string("Actor with name ") + name + " already exists", Error::duplicate);
         return;
     }
 
@@ -122,41 +122,45 @@ Player::Player(const string& name, const Vector& startPosition, Error& err)
     if (err.status == failure) {
         return;
     }
-    actor->animations["rock"] = "rock";
-    actor->animations["paper"] = "paper";
-    actor->animations["scissors"] = "scissors";
-    actor->currentAnimation = "rock";
+    animations["rock"] = "rock";
+    animations["paper"] = "paper";
+    animations["scissors"] = "scissors";
+    currentAnimation = "rock";
 
-    actor->position = startPosition;
-    actor->acceleration = Vector(0, 0);
+    position = startPosition;
+    acceleration = Vector(0, 0);
 
-    actor->eventActions[Actor::keyDown][SDLK_LEFT] = genOnKeyDown(Vector(-5, 0));
-    actor->eventActions[Actor::keyDown][SDLK_RIGHT] = genOnKeyDown(Vector(5, 0));
-    actor->eventActions[Actor::keyDown][SDLK_UP] = genOnKeyDown(Vector(0, -5));
-    actor->eventActions[Actor::keyDown][SDLK_DOWN] = genOnKeyDown(Vector(0, 5));
-    actor->eventActions[Actor::keyDown][SDLK_z] = [this](Actor& actor, const SDL_Event& event) {
+    eventActions[Actor::keyDown][SDLK_LEFT] = genOnKeyDown(Vector(-5, 0));
+    eventActions[Actor::keyDown][SDLK_RIGHT] = genOnKeyDown(Vector(5, 0));
+    eventActions[Actor::keyDown][SDLK_UP] = genOnKeyDown(Vector(0, -5));
+    eventActions[Actor::keyDown][SDLK_DOWN] = genOnKeyDown(Vector(0, 5));
+    eventActions[Actor::keyDown][SDLK_z] = [this](Actor& actor, const SDL_Event& event) {
         static_cast<void>(event);
         mode = Rock;
-        actor.currentAnimation = "rock";
+        currentAnimation = "rock";
     };
-    actor->eventActions[Actor::keyDown][SDLK_x] = [this](Actor& actor, const SDL_Event& event) {
+    eventActions[Actor::keyDown][SDLK_x] = [this](Actor& actor, const SDL_Event& event) {
         static_cast<void>(event);
         mode = Paper;
-        actor.currentAnimation = "paper";
+        currentAnimation = "paper";
     };
-    actor->eventActions[Actor::keyDown][SDLK_c] = [this](Actor& actor, const SDL_Event& event) {
+    eventActions[Actor::keyDown][SDLK_c] = [this](Actor& actor, const SDL_Event& event) {
         static_cast<void>(event);
         mode = Scissors;
-        actor.currentAnimation = "scissors";
+        currentAnimation = "scissors";
     };
 
-    actor->eventActions[Actor::quit][0] = [](Actor& actor, const SDL_Event& event) {
+
+    eventActions[Actor::quit][0] = [](Actor& actor, const SDL_Event& event) {
         cout << "Bye from player!" << endl;
     };
 
-    actor->onRender = [this](Actor& actor) {
-        onRenderPlayer(actor, *this);
+    onRender = [this](Actor& actor) {
+        static_cast<void>(actor);
+        onRenderPlayer(*this);
     };
+
+    state.actors[name] = this;
 }
 
 Player::~Player() = default;

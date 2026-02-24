@@ -42,7 +42,7 @@ public:
     };
 
     Actor();
-    ~Actor();
+    virtual ~Actor();
 
     double mass;
     Vector position;
