@@ -65,39 +65,42 @@ MiniMe::MiniMe(const SDL_Rect& pos, Player::Mode playerMode, Error& err) : Actor
     const string scissorsAnim = "minime_scissors";
 
     state.loadAnimation(rockAnim, {"./assets/rock.png"}, 0, err);
-    if (err.status == failure && err.type == Error::duplicate) {
+    if (err.status == failure && err.type != Error::duplicate) {
+        return;
+    }
+    if (err.status == failure) {
         err = Error::Success();
-    }
-    if (err.status == failure) {
-        return;
-    }
-    shrinkAnimationFrames(state, rockAnim, err);
-    if (err.status == failure) {
-        return;
+    } else {
+        shrinkAnimationFrames(state, rockAnim, err);
+        if (err.status == failure) {
+            return;
+        }
     }
 
     state.loadAnimation(paperAnim, {"./assets/paper.png"}, 0, err);
-    if (err.status == failure && err.type == Error::duplicate) {
+    if (err.status == failure && err.type != Error::duplicate) {
+        return;
+    }
+    if (err.status == failure) {
         err = Error::Success();
-    }
-    if (err.status == failure) {
-        return;
-    }
-    shrinkAnimationFrames(state, paperAnim, err);
-    if (err.status == failure) {
-        return;
+    } else {
+        shrinkAnimationFrames(state, paperAnim, err);
+        if (err.status == failure) {
+            return;
+        }
     }
 
     state.loadAnimation(scissorsAnim, {"./assets/scissors.png"}, 0, err);
-    if (err.status == failure && err.type == Error::duplicate) {
+    if (err.status == failure && err.type != Error::duplicate) {
+        return;
+    }
+    if (err.status == failure) {
         err = Error::Success();
-    }
-    if (err.status == failure) {
-        return;
-    }
-    shrinkAnimationFrames(state, scissorsAnim, err);
-    if (err.status == failure) {
-        return;
+    } else {
+        shrinkAnimationFrames(state, scissorsAnim, err);
+        if (err.status == failure) {
+            return;
+        }
     }
 
     animations["rock"] = rockAnim;
