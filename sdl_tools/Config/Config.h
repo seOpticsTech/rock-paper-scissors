@@ -11,6 +11,11 @@
 
 using namespace std;
 
+enum ControlMode {
+    KEYBOARD,
+    GAMEPAD
+};
+
 struct Config {
     Uint32 sdlInitFlags;
     string windowTitle;
@@ -24,6 +29,7 @@ struct Config {
     int imgInitFlags;
     int fps;
     function<int(SDL_Event *)> pollEvent;
+    ControlMode controlMode;
 };
 
 Config getDefaultConfig();

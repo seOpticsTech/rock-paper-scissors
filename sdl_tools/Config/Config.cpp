@@ -7,7 +7,7 @@
 
 Config getDefaultConfig() {
     Config config{};
-    config.sdlInitFlags = SDL_INIT_VIDEO;
+    config.sdlInitFlags = SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER;
     config.windowTitle = "game";
     config.windowX = SDL_WINDOWPOS_CENTERED;
     config.windowY = SDL_WINDOWPOS_CENTERED;
@@ -19,5 +19,6 @@ Config getDefaultConfig() {
     config.imgInitFlags = IMG_INIT_PNG;
     config.fps = 60;
     config.pollEvent = SDL_PollEvent;
+    config.controlMode = KEYBOARD;
     return config;
 }

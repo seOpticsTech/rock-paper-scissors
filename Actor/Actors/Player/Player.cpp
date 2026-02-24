@@ -11,7 +11,6 @@
 using namespace std;
 
 void onRenderPlayer(Actor& actor, Player& player) {
-    static Uint32 lastSpawnMs = 0;
     Uint32 nowMs = SDL_GetTicks();
     Error err;
     int width = 0;
@@ -57,7 +56,7 @@ void onRenderPlayer(Actor& actor, Player& player) {
         }
     }
 
-    if (nowMs - lastSpawnMs < 800) {
+    if (nowMs - player.lastSpawnMs < 800) {
         return;
     }
     if (width <= 0 || height <= 0) {
@@ -72,7 +71,7 @@ void onRenderPlayer(Actor& actor, Player& player) {
         0,
         0
     };
-    lastSpawnMs = nowMs;
+    player.lastSpawnMs = nowMs;
     MiniMe* minime = new MiniMe(pos, player.mode, err);
     if (err.status == failure) {
         delete minime;
@@ -95,9 +94,10 @@ Actor::eventAction Player::genOnKeyDown(const Vector& v) {
     };
 }
 
-Player::Player(Error& err) : actor(nullptr), mode(Rock) {
+Player::Player(const string& name, const Vector& startPosition, Error& err)
+    : actor(nullptr), mode(Rock), lastSpawnMs(0) {
     State& state = State::get();
-    actor = state.addActor("player", err);
+    actor = state.addActor(name, err);
     if (err.status == failure) {
         return;
     }
@@ -128,7 +128,7 @@ Player::Player(Error& err) : actor(nullptr), mode(Rock) {
     actor->animations["scissors"] = "scissors";
     actor->currentAnimation = "rock";
 
-    actor->position = Vector(380, 280);
+    actor->position = startPosition;
     actor->acceleration = Vector(0, 0);
 
     actor->eventActions[Actor::keyDown][SDLK_LEFT] = genOnKeyDown(Vector(-5, 0));

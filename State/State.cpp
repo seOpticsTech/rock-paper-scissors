@@ -5,6 +5,7 @@
 #include "State.h"
 #include "Actor/Actors/View/View.h"
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_gamecontroller.h>
 #include <map>
 #include <iostream>
 #include <unordered_map>
@@ -68,6 +69,9 @@ Error handleKeyDownEvent(const SDL_Event& event) {
         if (actor == nullptr) {
             continue;
         }
+        if (actor->controlMode != KEYBOARD) {
+            continue;
+        }
         auto groupIt = actor->eventActions.find(Actor::keyDown);
         if (groupIt == actor->eventActions.end()) {
             continue;
@@ -89,6 +93,9 @@ Error handleKeyUpEvent(const SDL_Event& event) {
         if (actor == nullptr) {
             continue;
         }
+        if (actor->controlMode != KEYBOARD) {
+            continue;
+        }
         auto groupIt = actor->eventActions.find(Actor::keyUp);
         if (groupIt == actor->eventActions.end()) {
             continue;
@@ -103,12 +110,121 @@ Error handleKeyUpEvent(const SDL_Event& event) {
     return Error::Success();
 }
 
+static bool mapControllerButtonToKey(const SDL_Event& event, SDL_Keycode& key) {
+    if (event.type != SDL_CONTROLLERBUTTONDOWN && event.type != SDL_CONTROLLERBUTTONUP) {
+        return false;
+    }
+    switch (event.cbutton.button) {
+        case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
+            key = SDLK_LEFT;
+            return true;
+        case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
+            key = SDLK_RIGHT;
+            return true;
+        case SDL_CONTROLLER_BUTTON_DPAD_UP:
+            key = SDLK_UP;
+            return true;
+        case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+            key = SDLK_DOWN;
+            return true;
+        case SDL_CONTROLLER_BUTTON_A:
+            key = SDLK_z;
+            return true;
+        case SDL_CONTROLLER_BUTTON_B:
+            key = SDLK_x;
+            return true;
+        case SDL_CONTROLLER_BUTTON_X:
+            key = SDLK_c;
+            return true;
+        default:
+            return false;
+    }
+}
+
+Error handleControllerButtonEvent(const SDL_Event& event) {
+    State& state = State::get();
+    SDL_Keycode key;
+    if (!mapControllerButtonToKey(event, key)) {
+        return Error::Success();
+    }
+    Actor::EventGroup group = event.type == SDL_CONTROLLERBUTTONDOWN ? Actor::keyDown : Actor::keyUp;
+    Uint32 keyCode = static_cast<Uint32>(key);
+    for (pair<string, Actor*> nameActor : state.actors) {
+        Actor* actor = nameActor.second;
+        if (actor == nullptr) {
+            continue;
+        }
+        if (actor->controlMode != GAMEPAD) {
+            continue;
+        }
+        if (actor->controllerId != event.cbutton.which) {
+            continue;
+        }
+        auto groupIt = actor->eventActions.find(group);
+        if (groupIt == actor->eventActions.end()) {
+            continue;
+        }
+        auto actionIt = groupIt->second.find(keyCode);
+        if (actionIt == groupIt->second.end() || actionIt->second == nullptr) {
+            continue;
+        }
+        actionIt->second(*actor, event);
+    }
+    return Error::Success();
+}
+
 State::State(const Config& config, Error& err)
-    : animations(), env(nullptr), running(true), actors(), animationCleanupEveryXFrames(1000), view(nullptr), fps(config.fps), pollEvent(config.pollEvent) {
+    : animations(),
+      env(nullptr),
+      running(true),
+      actors(),
+      animationCleanupEveryXFrames(1000),
+      view(nullptr),
+      fps(config.fps),
+      controlMode(config.controlMode),
+      controllers(),
+      controllerIds(),
+      pollEvent(config.pollEvent) {
     env = new SDL_Environment(config, err);
     if (err.status == failure) {
         err = Error::New("Failed to set up SDL_Environment: " + err.message);
         return;
+    }
+
+    int requiredControllers = 0;
+    if (controlMode == GAMEPAD) {
+        requiredControllers = 2;
+    } else {
+        requiredControllers = 1;
+    }
+
+    if (requiredControllers > 0) {
+        const int numJoysticks = SDL_NumJoysticks();
+        for (int i = 0; i < numJoysticks && static_cast<int>(controllers.size()) < requiredControllers; ++i) {
+            if (!SDL_IsGameController(i)) {
+                continue;
+            }
+            SDL_GameController* controller = SDL_GameControllerOpen(i);
+            if (controller == nullptr) {
+                err = Error::New(string("Failed to open game controller: ") + SDL_GetError());
+                break;
+            }
+            SDL_Joystick* joystick = SDL_GameControllerGetJoystick(controller);
+            SDL_JoystickID id = SDL_JoystickInstanceID(joystick);
+            controllers.push_back(controller);
+            controllerIds.push_back(id);
+        }
+        if (err.status == failure || static_cast<int>(controllers.size()) < requiredControllers) {
+            if (err.status == success) {
+                err = Error::New("Not enough game controllers found");
+            }
+            for (SDL_GameController* controller : controllers) {
+                SDL_GameControllerClose(controller);
+            }
+            controllers.clear();
+            controllerIds.clear();
+            return;
+        }
     }
 
     view = new View(1920, 1080);
@@ -134,6 +250,11 @@ State::~State() {
         }
         delete list;
     }
+    for (SDL_GameController* controller : controllers) {
+        SDL_GameControllerClose(controller);
+    }
+    controllers.clear();
+    controllerIds.clear();
     actors.clear();
     delete env;
 }
@@ -150,6 +271,8 @@ void State::startEventLoop() {
     typeToHandler[SDL_QUIT] = handleQuitEvent;
     typeToHandler[SDL_KEYDOWN] = handleKeyDownEvent;
     typeToHandler[SDL_KEYUP] = handleKeyUpEvent;
+    typeToHandler[SDL_CONTROLLERBUTTONDOWN] = handleControllerButtonEvent;
+    typeToHandler[SDL_CONTROLLERBUTTONUP] = handleControllerButtonEvent;
 
     int frameCounter = 0;
     unordered_map<string, Uint32> animationLastAdvanceMs;

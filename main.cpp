@@ -4,6 +4,7 @@
 #include "Actor/Actors/Player/Player.h"
 #include "SDL_Environment/SDL_Environment.h"
 #include "State/State.h"
+#include "Vector/Vector.h"
 
 using namespace std;
 
@@ -40,6 +41,7 @@ int main()
 {
     Error err;
     auto config = getDefaultConfig();
+    config.controlMode = GAMEPAD;
     // config.pollEvent = customPollEvent;
 
     State::make(config, err);
@@ -49,10 +51,27 @@ int main()
     }
     State& state = State::get();
 
-    Player p(err);
+    Player p1("player_1", Vector(480, 540), err);
     if (err.status == failure) {
-            cerr << "Failed to create actor: " << err.message << endl;
+        cerr << "Failed to create player 1: " << err.message << endl;
         return 1;
+    }
+
+    Player p2("player_2", Vector(1440, 540), err);
+    if (err.status == failure) {
+        cerr << "Failed to create player 2: " << err.message << endl;
+        return 1;
+    }
+
+    if (state.controlMode == GAMEPAD) {
+        p1.actor->controlMode = GAMEPAD;
+        p2.actor->controlMode = GAMEPAD;
+        p1.actor->controllerId = state.controllerIds[0];
+        p2.actor->controllerId = state.controllerIds[1];
+    } else {
+        p1.actor->controlMode = KEYBOARD;
+        p2.actor->controlMode = GAMEPAD;
+        p2.actor->controllerId = state.controllerIds[0];
     }
 
     state.startEventLoop();

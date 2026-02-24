@@ -16,13 +16,14 @@ class Player {
         Paper,
         Scissors
     };
-    explicit Player(Error& err);
+    Player(const string& name, const Vector& startPosition, Error& err);
     ~Player();
 
     Actor::eventAction genOnKeyDown(const Vector& v);
 
     Actor* actor;
     Mode mode;
+    Uint32 lastSpawnMs;
 };
 
 

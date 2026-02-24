@@ -9,6 +9,8 @@
 #include "Animation/Animation.h"
 #include <initializer_list>
 #include <utility>
+#include <vector>
+#include <SDL2/SDL.h>
 
 #include "Actor/Actor.h"
 
@@ -45,6 +47,9 @@ class State {
     int animationCleanupEveryXFrames;
     View* view;
     int fps;
+    ControlMode controlMode;
+    vector<SDL_GameController*> controllers;
+    vector<SDL_JoystickID> controllerIds;
 
     function<int(SDL_Event *)> pollEvent;
 
