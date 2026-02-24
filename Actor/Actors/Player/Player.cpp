@@ -7,7 +7,6 @@
 #include "Actor/Actors/MiniMe/MiniMe.h"
 #include "Texture/Texture.h"
 #include <iostream>
-#include <bits/codecvt.h>
 using namespace std;
 
 void onRenderPlayer(Actor& actor, Player& player) {
