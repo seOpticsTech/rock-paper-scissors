@@ -10,17 +10,9 @@
 #include <bits/codecvt.h>
 using namespace std;
 
-void onKeyUp(Actor& actor, const SDL_Event& event) {
-    static_cast<void>(event);
-    actor.velocity = Vector(0, 0);
-}
-
 void onRenderPlayer(Actor& actor, Player& player) {
     static Uint32 lastSpawnMs = 0;
     Uint32 nowMs = SDL_GetTicks();
-    if (nowMs - lastSpawnMs < 2300) {
-        return;
-    }
     Error err;
     int width = 0;
     int height = 0;
@@ -48,6 +40,26 @@ void onRenderPlayer(Actor& actor, Player& player) {
         }
     }
 
+    if (state.view != nullptr) {
+        int viewWidth = state.view->width;
+        int viewHeight = state.view->height;
+        double x = actor.position[0];
+        double y = actor.position[1];
+        if (x + width < 0) {
+            actor.position[0] = static_cast<double>(viewWidth);
+        } else if (x > viewWidth) {
+            actor.position[0] = static_cast<double>(-width);
+        }
+        if (y + height < 0) {
+            actor.position[1] = static_cast<double>(viewHeight);
+        } else if (y > viewHeight) {
+            actor.position[1] = static_cast<double>(-height);
+        }
+    }
+
+    if (nowMs - lastSpawnMs < 800) {
+        return;
+    }
     if (width <= 0 || height <= 0) {
         width = 0;
         height = 0;
@@ -71,6 +83,14 @@ Actor::eventAction Player::genOnKeyDown(const Vector& v) {
     return [this, v](Actor& actor, const SDL_Event& event) {
         static_cast<void>(actor);
         static_cast<void>(event);
+        const Vector& current = this->actor->velocity;
+        const bool movingX = current[0] != 0.0;
+        const bool movingY = current[1] != 0.0;
+        const bool wantsX = v[0] != 0.0;
+        const bool wantsY = v[1] != 0.0;
+        if ((movingX && wantsX) || (movingY && wantsY)) {
+            return;
+        }
         this->actor->velocity = v;
     };
 }
@@ -130,11 +150,6 @@ Player::Player(Error& err) : actor(nullptr), mode(Rock) {
         mode = Scissors;
         actor.currentAnimation = "scissors";
     };
-
-    actor->eventActions[Actor::keyUp][SDLK_LEFT] = onKeyUp;
-    actor->eventActions[Actor::keyUp][SDLK_RIGHT] = onKeyUp;
-    actor->eventActions[Actor::keyUp][SDLK_UP] = onKeyUp;
-    actor->eventActions[Actor::keyUp][SDLK_DOWN] = onKeyUp;
 
     actor->eventActions[Actor::quit][0] = [](Actor& actor, const SDL_Event& event) {
         cout << "Bye from player!" << endl;

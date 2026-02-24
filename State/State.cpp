@@ -111,7 +111,7 @@ State::State(const Config& config, Error& err)
         return;
     }
 
-    view = new View(800, 600);
+    view = new View(1920, 1080);
     view->actor = addActor("view", err);
     if (err.status == failure) {
         err = Error::New("Failed to set up View: " + err.message);

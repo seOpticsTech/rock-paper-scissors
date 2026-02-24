@@ -11,8 +11,8 @@ Config getDefaultConfig() {
     config.windowTitle = "game";
     config.windowX = SDL_WINDOWPOS_CENTERED;
     config.windowY = SDL_WINDOWPOS_CENTERED;
-    config.windowWidth = 800;
-    config.windowHeight = 600;
+    config.windowWidth = 1920;
+    config.windowHeight = 1080;
     config.windowFlags = SDL_WINDOW_SHOWN;
     config.rendererIndex = -1;
     config.rendererFlags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
