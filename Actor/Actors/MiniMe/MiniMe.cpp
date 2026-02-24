@@ -122,7 +122,9 @@ MiniMe::MiniMe(const SDL_Rect& pos, Player::Mode playerMode, Error& err) : Actor
             break;
     }
 
-    state.actors[name] = this;
+    if (!state.registerActor(name, this, err)) {
+        return;
+    }
 }
 
 MiniMe::~MiniMe() = default;

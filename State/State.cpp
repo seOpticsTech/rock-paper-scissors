@@ -186,7 +186,11 @@ State::State(const Config& config, Error& err)
       controlMode(config.controlMode),
       controllers(),
       controllerIds(),
-      pollEvent(config.pollEvent) {
+      pollEvent(config.pollEvent),
+      deferActorMutations(false),
+      pendingAddActors(),
+      pendingRemoveNames(),
+      pendingRemoveActors() {
     env = new SDL_Environment(config, err);
     if (err.status == failure) {
         err = Error::New("Failed to set up SDL_Environment: " + err.message);
@@ -230,17 +234,21 @@ State::State(const Config& config, Error& err)
     }
 
     view = new View(1920, 1080);
-    if (actors.contains("view")) {
-        err = Error::New("Actor with name view already exists", Error::duplicate);
+    if (!registerActor("view", view, err)) {
         return;
     }
-    actors["view"] = view;
 }
 
 State::~State() {
     for (pair<string, Actor*> actor : actors) {
         delete actor.second;
     }
+    for (const auto& nameActor : pendingAddActors) {
+        delete nameActor.second;
+    }
+    pendingAddActors.clear();
+    pendingRemoveNames.clear();
+    pendingRemoveActors.clear();
     for (pair<string, Animation> nameAnimation : animations) {
         Animation& anim = nameAnimation.second;
         auto list = !anim.iterator;
@@ -281,6 +289,7 @@ void State::startEventLoop() {
 
     const double perfFrequency = static_cast<double>(SDL_GetPerformanceFrequency());
 
+    deferActorMutations = true;
     while (running) {
         Uint64 frameStart = SDL_GetPerformanceCounter();
         while (pollEvent(&event)) {
@@ -353,6 +362,7 @@ void State::startEventLoop() {
 
         env->renderer->present();
         collisionHandler();
+        applyDeferredActors();
         if (frameCounter % animationCleanupEveryXFrames == 0) {
             cleanupAnimations();
         }
@@ -372,9 +382,21 @@ void State::startEventLoop() {
             }
         }
     }
+    deferActorMutations = false;
 }
 
 void State::removeActor(const string& name) {
+    if (deferActorMutations) {
+        pendingRemoveNames.insert(name);
+        for (auto it = pendingAddActors.begin(); it != pendingAddActors.end(); ++it) {
+            if (it->first == name) {
+                delete it->second;
+                pendingAddActors.erase(it);
+                break;
+            }
+        }
+        return;
+    }
     auto it = actors.find(name);
     if (it == actors.end()) {
         return;
@@ -388,6 +410,17 @@ void State::removeActor(const string& name) {
 
 void State::removeActor(Actor* actor) {
     if (actor == nullptr) {
+        return;
+    }
+    if (deferActorMutations) {
+        for (auto it = pendingAddActors.begin(); it != pendingAddActors.end(); ++it) {
+            if (it->second == actor) {
+                delete it->second;
+                pendingAddActors.erase(it);
+                return;
+            }
+        }
+        pendingRemoveActors.insert(actor);
         return;
     }
     for (auto it = actors.begin(); it != actors.end(); ++it) {
@@ -518,13 +551,35 @@ void State::collisionHandler() {
 }
 
 Actor* State::addActor(const string& name, Error& err) {
-    if (actors.contains(name)) {
-        err = Error::New(string("Actor with name ") + name + " already exists");
+    auto a = new Actor();
+    if (!registerActor(name, a, err)) {
+        delete a;
         return nullptr;
     }
-    auto a = new Actor();
-    actors[name] = a;
     return a;
+}
+
+bool State::registerActor(const string& name, Actor* actor, Error& err) {
+    if (actor == nullptr) {
+        err = Error::New("Actor is null");
+        return false;
+    }
+    if (actors.contains(name)) {
+        err = Error::New(string("Actor with name ") + name + " already exists", Error::duplicate);
+        return false;
+    }
+    for (const auto& pending : pendingAddActors) {
+        if (pending.first == name) {
+            err = Error::New(string("Actor with name ") + name + " already exists", Error::duplicate);
+            return false;
+        }
+    }
+    if (deferActorMutations) {
+        pendingAddActors.emplace_back(name, actor);
+        return true;
+    }
+    actors[name] = actor;
+    return true;
 }
 
 Animation State::loadAnimation(const string& name, std::initializer_list<string> paths, int msPerFrame, Error& err) {
@@ -598,4 +653,49 @@ void State::cleanupAnimations() {
     for (const string& key : keysToDelete) {
         animations.erase(key);
     }
+}
+
+void State::applyDeferredActors() {
+    if (pendingRemoveNames.empty() && pendingRemoveActors.empty() && pendingAddActors.empty()) {
+        return;
+    }
+
+    for (const string& name : pendingRemoveNames) {
+        auto it = actors.find(name);
+        if (it == actors.end()) {
+            continue;
+        }
+        if (it->second == view) {
+            view = nullptr;
+        }
+        delete it->second;
+        actors.erase(it);
+    }
+
+    for (Actor* actor : pendingRemoveActors) {
+        for (auto it = actors.begin(); it != actors.end(); ++it) {
+            if (it->second == actor) {
+                if (it->second == view) {
+                    view = nullptr;
+                }
+                delete it->second;
+                actors.erase(it);
+                break;
+            }
+        }
+    }
+
+    pendingRemoveNames.clear();
+    pendingRemoveActors.clear();
+
+    for (const auto& nameActor : pendingAddActors) {
+        const string& name = nameActor.first;
+        Actor* actor = nameActor.second;
+        if (actors.contains(name)) {
+            delete actor;
+            continue;
+        }
+        actors[name] = actor;
+    }
+    pendingAddActors.clear();
 }

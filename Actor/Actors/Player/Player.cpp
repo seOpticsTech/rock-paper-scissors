@@ -182,7 +182,9 @@ Player::Player(const string& name, const Vector& startPosition, Error& err)
         onRenderPlayer(*this);
     };
 
-    state.actors[name] = this;
+    if (!state.registerActor(name, this, err)) {
+        return;
+    }
 }
 
 Player::~Player() = default;

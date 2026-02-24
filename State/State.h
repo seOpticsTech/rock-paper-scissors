@@ -11,6 +11,7 @@
 #include <utility>
 #include <vector>
 #include <SDL2/SDL.h>
+#include <unordered_set>
 
 #include "Actor/Actor.h"
 
@@ -37,11 +38,13 @@ class State {
     Animation loadAnimation(const string& name, std::initializer_list<string> paths, int msPerFrame, Error& err);
     Animation loadAnimation(const string& name, std::initializer_list<pair<string, const SDL_Rect*>> frames, int msPerFrame, Error& err);
     Actor* addActor(const string& name, Error& err);
+    bool registerActor(const string& name, Actor* actor, Error& err);
 
     void removeActor(const string& name);
     void removeActor(Actor* actor);
 
     void cleanupAnimations();
+    void applyDeferredActors();
 
     // Vars
     map<string, Animation> animations;
@@ -56,6 +59,11 @@ class State {
     vector<SDL_JoystickID> controllerIds;
 
     function<int(SDL_Event *)> pollEvent;
+
+    bool deferActorMutations;
+    vector<pair<string, Actor*>> pendingAddActors;
+    unordered_set<string> pendingRemoveNames;
+    unordered_set<Actor*> pendingRemoveActors;
 
     protected:
     State(const Config& config, Error& err);
