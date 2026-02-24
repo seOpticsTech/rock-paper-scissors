@@ -33,9 +33,13 @@ class State {
 
     // Methods
     void startEventLoop();
+    void collisionHandler();
     Animation loadAnimation(const string& name, std::initializer_list<string> paths, int msPerFrame, Error& err);
     Animation loadAnimation(const string& name, std::initializer_list<pair<string, const SDL_Rect*>> frames, int msPerFrame, Error& err);
     Actor* addActor(const string& name, Error& err);
+
+    void removeActor(const string& name);
+    void removeActor(Actor* actor);
 
     void cleanupAnimations();
 

@@ -16,6 +16,8 @@
 
 using namespace std;
 
+class State;
+
 
 class Actor {
 public:
@@ -43,6 +45,8 @@ public:
 
     Actor();
     virtual ~Actor();
+
+    bool getSize(State& state, int& width, int& height, Error& err) const;
 
     double mass;
     Vector position;

@@ -10,7 +10,14 @@
 using namespace std;
 
 void onRenderPlayer(Player& player) {
+    if (player.hp <= 0) {
+        State::get().removeActor(&player);
+        return;
+    }
     Uint32 nowMs = SDL_GetTicks();
+    if (nowMs - player.lastModeChangeMs < 3000) {
+        return;
+    }
     Error err;
     int width = 0;
     int height = 0;
@@ -94,7 +101,7 @@ Actor::eventAction Player::genOnKeyDown(const Vector& v) {
 }
 
 Player::Player(const string& name, const Vector& startPosition, Error& err)
-    : Actor(), mode(Rock), lastSpawnMs(0) {
+    : Actor(), mode(Rock), lastSpawnMs(0), lastModeChangeMs(0), hp(3) {
     State& state = State::get();
     if (state.actors.contains(name)) {
         err = Error::New(string("Actor with name ") + name + " already exists", Error::duplicate);
@@ -136,18 +143,33 @@ Player::Player(const string& name, const Vector& startPosition, Error& err)
     eventActions[Actor::keyDown][SDLK_DOWN] = genOnKeyDown(Vector(0, 5));
     eventActions[Actor::keyDown][SDLK_z] = [this](Actor& actor, const SDL_Event& event) {
         static_cast<void>(event);
+        Uint32 nowMs = SDL_GetTicks();
+        if (nowMs - lastModeChangeMs < 3000) {
+            return;
+        }
         mode = Rock;
         currentAnimation = "rock";
+        lastModeChangeMs = nowMs;
     };
     eventActions[Actor::keyDown][SDLK_x] = [this](Actor& actor, const SDL_Event& event) {
         static_cast<void>(event);
+        Uint32 nowMs = SDL_GetTicks();
+        if (nowMs - lastModeChangeMs < 3000) {
+            return;
+        }
         mode = Paper;
         currentAnimation = "paper";
+        lastModeChangeMs = nowMs;
     };
     eventActions[Actor::keyDown][SDLK_c] = [this](Actor& actor, const SDL_Event& event) {
         static_cast<void>(event);
+        Uint32 nowMs = SDL_GetTicks();
+        if (nowMs - lastModeChangeMs < 3000) {
+            return;
+        }
         mode = Scissors;
         currentAnimation = "scissors";
+        lastModeChangeMs = nowMs;
     };
 
 

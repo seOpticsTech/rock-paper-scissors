@@ -10,7 +10,8 @@ Texture::Texture(SDL_Texture* texture) : texture(texture), scope(nullptr), drawS
 Texture::Texture(SDL_Texture* texture, const SDL_Rect& scope)
     : texture(texture), scope(new SDL_Rect{scope.x, scope.y, scope.w, scope.h}), drawSize(nullptr) {}
 
-Texture::Texture(Texture&& other) noexcept : texture(other.texture), scope(other.scope), drawSize(other.drawSize) {
+Texture::Texture(Texture&& other) noexcept
+    : texture(other.texture), scope(other.scope), drawSize(other.drawSize) {
     other.texture = nullptr;
     other.scope = nullptr;
     other.drawSize = nullptr;
@@ -73,6 +74,7 @@ void Texture::clearDrawSize() {
 const Vector* Texture::getDrawSize() const {
     return drawSize;
 }
+
 
 void Texture::querySize(int &width, int &height, Error &err) const {
     if (texture == nullptr) {

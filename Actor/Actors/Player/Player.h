@@ -23,6 +23,8 @@ class Player : public Actor {
 
     Mode mode;
     Uint32 lastSpawnMs;
+    Uint32 lastModeChangeMs;
+    int hp;
 };
 
 

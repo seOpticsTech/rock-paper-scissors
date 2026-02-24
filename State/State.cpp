@@ -4,6 +4,8 @@
 
 #include "State.h"
 #include "Actor/Actors/View/View.h"
+#include "Actor/Actors/Player/Player.h"
+#include "Actor/Actors/MiniMe/MiniMe.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_gamecontroller.h>
 #include <map>
@@ -350,6 +352,7 @@ void State::startEventLoop() {
         }
 
         env->renderer->present();
+        collisionHandler();
         if (frameCounter % animationCleanupEveryXFrames == 0) {
             cleanupAnimations();
         }
@@ -368,6 +371,149 @@ void State::startEventLoop() {
                 }
             }
         }
+    }
+}
+
+void State::removeActor(const string& name) {
+    auto it = actors.find(name);
+    if (it == actors.end()) {
+        return;
+    }
+    if (it->second == view) {
+        view = nullptr;
+    }
+    delete it->second;
+    actors.erase(it);
+}
+
+void State::removeActor(Actor* actor) {
+    if (actor == nullptr) {
+        return;
+    }
+    for (auto it = actors.begin(); it != actors.end(); ++it) {
+        if (it->second == actor) {
+            if (it->second == view) {
+                view = nullptr;
+            }
+            delete it->second;
+            actors.erase(it);
+            return;
+        }
+    }
+}
+
+
+bool rectanglesOverlap(double ax, double ay, int aw, int ah, double bx, double by, int bw, int bh) {
+    return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+}
+
+int rpsResult(Player::Mode left, Player::Mode right) {
+    if (left == right) {
+        return 0;
+    }
+    if ((left == Player::Rock && right == Player::Scissors) ||
+        (left == Player::Paper && right == Player::Rock) ||
+        (left == Player::Scissors && right == Player::Paper)) {
+        return 1;
+        }
+    return -1;
+}
+
+int rpsResult(Player::Mode left, MiniMe::Mode right) {
+    if (left == Player::Rock && right == MiniMe::Rock) {
+        return 0;
+    }
+    if (left == Player::Paper && right == MiniMe::Paper) {
+        return 0;
+    }
+    if (left == Player::Scissors && right == MiniMe::Scissors) {
+        return 0;
+    }
+    if ((left == Player::Rock && right == MiniMe::Scissors) ||
+        (left == Player::Paper && right == MiniMe::Rock) ||
+        (left == Player::Scissors && right == MiniMe::Paper)) {
+        return 1;
+        }
+    return -1;
+}
+
+void State::collisionHandler() {
+    Error err;
+    vector<Player*> players;
+    vector<MiniMe*> minimes;
+    for (pair<string, Actor*> nameActor : actors) {
+        Actor* actor = nameActor.second;
+        if (actor == nullptr) {
+            continue;
+        }
+        if (auto* player = dynamic_cast<Player*>(actor)) {
+            players.push_back(player);
+            continue;
+        }
+        if (auto* minime = dynamic_cast<MiniMe*>(actor)) {
+            minimes.push_back(minime);
+        }
+    }
+
+    unordered_set<Actor*> toDelete;
+
+    for (Player* player : players) {
+        int playerWidth = 0;
+        int playerHeight = 0;
+        if (!player->getSize(*this, playerWidth, playerHeight, err)) {
+            continue;
+        }
+        for (MiniMe* minime : minimes) {
+            if (toDelete.contains(minime)) {
+                continue;
+            }
+            int minimeWidth = 0;
+            int minimeHeight = 0;
+            if (!minime->getSize(*this, minimeWidth, minimeHeight, err)) {
+                continue;
+            }
+            if (!rectanglesOverlap(player->position[0], player->position[1], playerWidth, playerHeight,
+                                   minime->position[0], minime->position[1], minimeWidth, minimeHeight)) {
+                continue;
+            }
+            int result = rpsResult(player->mode, minime->mode);
+            if (result == 0) {
+                continue;
+            }
+            if (result > 0) {
+                toDelete.insert(minime);
+            } else {
+                player->hp -= 1;
+                toDelete.insert(minime);
+            }
+        }
+    }
+
+    if (players.size() >= 2) {
+        Player* left = players[0];
+        Player* right = players[1];
+        if (!toDelete.contains(left) && !toDelete.contains(right)) {
+            int leftWidth = 0;
+            int leftHeight = 0;
+            int rightWidth = 0;
+            int rightHeight = 0;
+            if (left->getSize(*this, leftWidth, leftHeight, err) &&
+                right->getSize(*this, rightWidth, rightHeight, err)) {
+                if (rectanglesOverlap(left->position[0], left->position[1], leftWidth, leftHeight,
+                                      right->position[0], right->position[1], rightWidth, rightHeight)) {
+                    int result = rpsResult(left->mode, right->mode);
+                    if (result > 0) {
+                        right->hp -= 3;
+                    } else if (result < 0) {
+                        left->hp -= 3;
+                    }
+                }
+            }
+        }
+    }
+
+    for (Actor* actor : toDelete) {
+        removeActor(actor);
     }
 }
 
