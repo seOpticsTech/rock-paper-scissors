@@ -197,13 +197,13 @@ Player::Player(const string& name, const Vector& startPosition, Error& err)
     eventActions[Actor::keyDown][SDLK_c] = isControlledByKeyboardDecorator(setScissors);
 
     // Gamepad event handlers
-    eventActions[Actor::controller][SDL_CONTROLLER_BUTTON_DPAD_LEFT] = isControlledByThisGamepadDecorator(moveLeft);
-    eventActions[Actor::controller][SDL_CONTROLLER_BUTTON_DPAD_RIGHT] = isControlledByThisGamepadDecorator(moveRight);
-    eventActions[Actor::controller][SDL_CONTROLLER_BUTTON_DPAD_UP] = isControlledByThisGamepadDecorator(moveUp);
-    eventActions[Actor::controller][SDL_CONTROLLER_BUTTON_DPAD_DOWN] = isControlledByThisGamepadDecorator(moveDown);
-    eventActions[Actor::controller][SDL_CONTROLLER_BUTTON_A] = isControlledByThisGamepadDecorator(setRock);
-    eventActions[Actor::controller][SDL_CONTROLLER_BUTTON_B] = isControlledByThisGamepadDecorator(setPaper);
-    eventActions[Actor::controller][SDL_CONTROLLER_BUTTON_X] = isControlledByThisGamepadDecorator(setScissors);
+    eventActions[Actor::controllerButtonDown][SDL_CONTROLLER_BUTTON_DPAD_LEFT] = isControlledByThisGamepadDecorator(moveLeft);
+    eventActions[Actor::controllerButtonDown][SDL_CONTROLLER_BUTTON_DPAD_RIGHT] = isControlledByThisGamepadDecorator(moveRight);
+    eventActions[Actor::controllerButtonDown][SDL_CONTROLLER_BUTTON_DPAD_UP] = isControlledByThisGamepadDecorator(moveUp);
+    eventActions[Actor::controllerButtonDown][SDL_CONTROLLER_BUTTON_DPAD_DOWN] = isControlledByThisGamepadDecorator(moveDown);
+    eventActions[Actor::controllerButtonDown][SDL_CONTROLLER_BUTTON_A] = isControlledByThisGamepadDecorator(setRock);
+    eventActions[Actor::controllerButtonDown][SDL_CONTROLLER_BUTTON_B] = isControlledByThisGamepadDecorator(setPaper);
+    eventActions[Actor::controllerButtonDown][SDL_CONTROLLER_BUTTON_X] = isControlledByThisGamepadDecorator(setScissors);
 
 
     eventActions[Actor::quit][0] = [](Actor& actor, const SDL_Event& event) {

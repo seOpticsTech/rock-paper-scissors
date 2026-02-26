@@ -173,11 +173,6 @@ void State::startEventLoop() {
 
     SDL_Event event;
     map<Uint32, eventHandler> typeToHandler;
-    // typeToHandler[SDL_QUIT] = handleQuitEvent;
-    // typeToHandler[SDL_KEYDOWN] = handleKeyDownEvent;
-    // typeToHandler[SDL_KEYUP] = handleKeyUpEvent;
-    // typeToHandler[SDL_CONTROLLERBUTTONDOWN] = handleControllerButtonEvent;
-    // typeToHandler[SDL_CONTROLLERBUTTONUP] = handleControllerButtonEvent;
     typeToHandler[SDL_QUIT] = getEventHandler(Actor::quit, [](const SDL_Event& event) {
         static_cast<void>(event);
         return static_cast<Uint32>(0);
@@ -188,10 +183,10 @@ void State::startEventLoop() {
     typeToHandler[SDL_KEYUP] = getEventHandler(Actor::keyUp, [](const SDL_Event& event) {
         return static_cast<Uint32>(event.key.keysym.sym);
     });
-    typeToHandler[SDL_CONTROLLERBUTTONDOWN] = getEventHandler(Actor::controller, [](const SDL_Event& event) {
+    typeToHandler[SDL_CONTROLLERBUTTONDOWN] = getEventHandler(Actor::controllerButtonDown, [](const SDL_Event& event) {
         return static_cast<Uint32>(event.cbutton.button);
     });
-    typeToHandler[SDL_CONTROLLERBUTTONUP] = getEventHandler(Actor::controller, [](const SDL_Event& event) {
+    typeToHandler[SDL_CONTROLLERBUTTONUP] = getEventHandler(Actor::controllerButtonUp, [](const SDL_Event& event) {
         return static_cast<Uint32>(event.cbutton.button);
     });
 
