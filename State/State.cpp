@@ -308,7 +308,7 @@ void State::startEventLoop() {
         }
         err = Error::Success();
 
-        env->renderer->setDrawColor(0, 0, 0, 255);
+        env->renderer->setDrawColor(16, 64, 32, 255);
         env->renderer->clear();
 
         for (pair<string, Actor*> nameActor : actors) {
@@ -696,3 +696,4 @@ void State::applyDeferredActors() {
     }
     pendingAddActors.clear();
 }
+
