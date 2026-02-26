@@ -46,7 +46,7 @@ public:
     Actor();
     virtual ~Actor();
 
-    bool getSize(State& state, int& width, int& height, Error& err) const;
+    bool getSize(int& width, int& height, Error& err) const;
 
     double mass;
     Vector position;

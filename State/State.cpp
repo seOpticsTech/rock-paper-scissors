@@ -489,7 +489,10 @@ void State::collisionHandler() {
     for (Player* player : players) {
         int playerWidth = 0;
         int playerHeight = 0;
-        if (!player->getSize(*this, playerWidth, playerHeight, err)) {
+        if (!player->getSize(playerWidth, playerHeight, err)) {
+            if (err.status == failure) {
+                cerr << "Player size error: " << err.message << endl;
+            }
             continue;
         }
         for (MiniMe* minime : minimes) {
@@ -498,7 +501,10 @@ void State::collisionHandler() {
             }
             int minimeWidth = 0;
             int minimeHeight = 0;
-            if (!minime->getSize(*this, minimeWidth, minimeHeight, err)) {
+            if (!minime->getSize(minimeWidth, minimeHeight, err)) {
+                if (err.status == failure) {
+                    cerr << "MiniMe size error: " << err.message << endl;
+                }
                 continue;
             }
             if (!rectanglesOverlap(player->position[0], player->position[1], playerWidth, playerHeight,
@@ -526,8 +532,8 @@ void State::collisionHandler() {
             int leftHeight = 0;
             int rightWidth = 0;
             int rightHeight = 0;
-            if (left->getSize(*this, leftWidth, leftHeight, err) &&
-                right->getSize(*this, rightWidth, rightHeight, err)) {
+            if (left->getSize(leftWidth, leftHeight, err) &&
+                right->getSize(rightWidth, rightHeight, err)) {
                 if (rectanglesOverlap(left->position[0], left->position[1], leftWidth, leftHeight,
                                       right->position[0], right->position[1], rightWidth, rightHeight)) {
                     int result = rpsResult(left->mode, right->mode);
@@ -537,6 +543,8 @@ void State::collisionHandler() {
                         left->hp -= 3;
                     }
                 }
+            } else if (err.status == failure) {
+                cerr << "Player size error: " << err.message << endl;
             }
         }
     }
@@ -579,11 +587,24 @@ bool State::registerActor(const string& name, Actor* actor, Error& err) {
 }
 
 Animation State::loadAnimation(const string& name, std::initializer_list<string> paths, int msPerFrame, Error& err) {
-    if (animations.find(name) != animations.end()) {
-        err = Error::New(string("Animation already exists: ") + name, Error::duplicate);
-        return {};
+    auto anim = loadAnimationNoDuplicate(name, paths, msPerFrame, err);
+    if (err.status == failure) {
+        if (err.type == Error::duplicate) {
+            err = Error::Success();
+        }
     }
-    Animation anim = env->renderer->loadAnimation(paths, msPerFrame, err);
+    return anim;
+}
+
+Animation State::loadAnimationNoDuplicate(const string& name, std::initializer_list<string> paths, int msPerFrame, Error& err) {
+    Animation anim;
+    const auto& animIt = animations.find(name);
+    if (animIt != animations.end()) {
+        err = Error::New(string("Animation already exists: ") + name, Error::duplicate);
+        anim = animIt->second;
+        return anim;
+    }
+    anim = env->renderer->loadAnimation(paths, msPerFrame, err);
     if (err.status == failure) {
         auto list = !anim.iterator;
         if (list != nullptr) {
@@ -599,11 +620,24 @@ Animation State::loadAnimation(const string& name, std::initializer_list<string>
 }
 
 Animation State::loadAnimation(const string& name, std::initializer_list<pair<string, const SDL_Rect*>> frames, int msPerFrame, Error& err) {
-    if (animations.find(name) != animations.end()) {
-        err = Error::New(string("Animation already exists: ") + name, Error::duplicate);
-        return {};
+    auto anim = loadAnimationNoDuplicate(name, frames, msPerFrame, err);
+    if (err.status == failure) {
+        if (err.type == Error::duplicate) {
+            err = Error::Success();
+        }
     }
-    Animation anim = env->renderer->loadAnimation(frames, msPerFrame, err);
+    return anim;
+}
+
+Animation State::loadAnimationNoDuplicate(const string& name, std::initializer_list<pair<string, const SDL_Rect*>> frames, int msPerFrame, Error& err) {
+    Animation anim;
+    const auto& animIt = animations.find(name);
+    if (animIt != animations.end()) {
+        err = Error::New(string("Animation already exists: ") + name, Error::duplicate);
+        anim = animIt->second;
+        return anim;
+    }
+    anim = env->renderer->loadAnimation(frames, msPerFrame, err);
     if (err.status == failure) {
         auto list = !anim.iterator;
         if (list != nullptr) {

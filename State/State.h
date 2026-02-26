@@ -37,6 +37,8 @@ class State {
     void collisionHandler();
     Animation loadAnimation(const string& name, std::initializer_list<string> paths, int msPerFrame, Error& err);
     Animation loadAnimation(const string& name, std::initializer_list<pair<string, const SDL_Rect*>> frames, int msPerFrame, Error& err);
+    Animation loadAnimationNoDuplicate(const string& name, std::initializer_list<string> paths, int msPerFrame, Error& err);
+    Animation loadAnimationNoDuplicate(const string& name, std::initializer_list<pair<string, const SDL_Rect*>> frames, int msPerFrame, Error& err);
     Actor* addActor(const string& name, Error& err);
     bool registerActor(const string& name, Actor* actor, Error& err);
 

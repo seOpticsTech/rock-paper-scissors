@@ -54,7 +54,7 @@ MiniMe::MiniMe(const SDL_Rect& pos, Player::Mode playerMode, Error& err) : Actor
     static int minimeCounter = 0;
     string name = string("minime_") + to_string(minimeCounter++);
     if (state.actors.contains(name)) {
-        err = Error::New(string("Actor with name ") + name + " already exists", Error::duplicate);
+        err = Error::New(string("MiniMe with name ") + name + " already exists", Error::duplicate);
         return;
     }
     position = Vector(pos.x, pos.y);
@@ -64,7 +64,7 @@ MiniMe::MiniMe(const SDL_Rect& pos, Player::Mode playerMode, Error& err) : Actor
     const string paperAnim = "minime_paper";
     const string scissorsAnim = "minime_scissors";
 
-    state.loadAnimation(rockAnim, {"./assets/rock.png"}, 0, err);
+    state.loadAnimationNoDuplicate(rockAnim, {"./assets/rock.png"}, 0, err);
     if (err.status == failure && err.type != Error::duplicate) {
         return;
     }
@@ -77,7 +77,7 @@ MiniMe::MiniMe(const SDL_Rect& pos, Player::Mode playerMode, Error& err) : Actor
         }
     }
 
-    state.loadAnimation(paperAnim, {"./assets/paper.png"}, 0, err);
+    state.loadAnimationNoDuplicate(paperAnim, {"./assets/paper.png"}, 0, err);
     if (err.status == failure && err.type != Error::duplicate) {
         return;
     }
@@ -90,7 +90,7 @@ MiniMe::MiniMe(const SDL_Rect& pos, Player::Mode playerMode, Error& err) : Actor
         }
     }
 
-    state.loadAnimation(scissorsAnim, {"./assets/scissors.png"}, 0, err);
+    state.loadAnimationNoDuplicate(scissorsAnim, {"./assets/scissors.png"}, 0, err);
     if (err.status == failure && err.type != Error::duplicate) {
         return;
     }

@@ -104,28 +104,19 @@ Player::Player(const string& name, const Vector& startPosition, Error& err)
     : Actor(), mode(Rock), lastSpawnMs(0), lastModeChangeMs(0), hp(3) {
     State& state = State::get();
     if (state.actors.contains(name)) {
-        err = Error::New(string("Actor with name ") + name + " already exists", Error::duplicate);
+        err = Error::New(string("Player with name ") + name + " already exists", Error::duplicate);
         return;
     }
 
     state.loadAnimation("rock", {"./assets/rock.png"}, 0, err);
-    if (err.status == failure && err.type == Error::duplicate) {
-        err = Error::Success();
-    }
     if (err.status == failure) {
         return;
     }
     state.loadAnimation("paper", {"./assets/paper.png"}, 0, err);
-    if (err.status == failure && err.type == Error::duplicate) {
-        err = Error::Success();
-    }
     if (err.status == failure) {
         return;
     }
     state.loadAnimation("scissors", { "./assets/scissors.png"}, 0, err);
-    if (err.status == failure && err.type == Error::duplicate) {
-        err = Error::Success();
-    }
     if (err.status == failure) {
         return;
     }
