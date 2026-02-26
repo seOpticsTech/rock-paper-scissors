@@ -49,7 +49,7 @@ static void shrinkAnimationFrames(State& state, const string& animationName, Err
     } while (it != start);
 }
 
-MiniMe::MiniMe(const SDL_Rect& pos, Player::Mode playerMode, Error& err) : Actor(), mode(Rock) {
+MiniMe::MiniMe(const SDL_Rect& pos, Mode playerMode, Error& err) : Actor(), mode(Rock) {
     auto& state = State::get();
     static int minimeCounter = 0;
     string name = string("minime_") + to_string(minimeCounter++);
@@ -108,15 +108,15 @@ MiniMe::MiniMe(const SDL_Rect& pos, Player::Mode playerMode, Error& err) : Actor
     animations["scissors"] = scissorsAnim;
 
     switch (playerMode) {
-        case Player::Rock:
+        case Rock:
             mode = Rock;
             currentAnimation = "rock";
             break;
-        case Player::Paper:
+        case Paper:
             mode = Paper;
             currentAnimation = "paper";
             break;
-        case Player::Scissors:
+        case Scissors:
             mode = Scissors;
             currentAnimation = "scissors";
             break;

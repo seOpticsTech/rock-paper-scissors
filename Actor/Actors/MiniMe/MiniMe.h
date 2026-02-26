@@ -6,18 +6,13 @@
 #define GAME_MINIME_H
 #include <SDL2/SDL_rect.h>
 #include "Actor/Actor.h"
-#include "Actor/Actors/Player/Player.h"
+#include "utils/Utils.h"
 #include "Error.h"
 
 
 class MiniMe : public Actor {
     public:
-    enum Mode {
-        Rock,
-        Paper,
-        Scissors
-    };
-    MiniMe(const SDL_Rect& pos, Player::Mode playerMode, Error& err);
+    MiniMe(const SDL_Rect& pos, Mode playerMode, Error& err);
     ~MiniMe();
 
     Mode mode;

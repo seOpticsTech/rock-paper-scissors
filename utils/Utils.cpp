@@ -8,31 +8,13 @@ bool rectanglesOverlap(double ax, double ay, int aw, int ah, double bx, double b
     return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
 }
 
-int rpsResult(Player::Mode left, Player::Mode right) {
+int rpsResult(Mode left, Mode right) {
     if (left == right) {
         return 0;
     }
-    if ((left == Player::Rock && right == Player::Scissors) ||
-        (left == Player::Paper && right == Player::Rock) ||
-        (left == Player::Scissors && right == Player::Paper)) {
-        return 1;
-    }
-    return -1;
-}
-
-int rpsResult(Player::Mode left, MiniMe::Mode right) {
-    if (left == Player::Rock && right == MiniMe::Rock) {
-        return 0;
-    }
-    if (left == Player::Paper && right == MiniMe::Paper) {
-        return 0;
-    }
-    if (left == Player::Scissors && right == MiniMe::Scissors) {
-        return 0;
-    }
-    if ((left == Player::Rock && right == MiniMe::Scissors) ||
-        (left == Player::Paper && right == MiniMe::Rock) ||
-        (left == Player::Scissors && right == MiniMe::Paper)) {
+    if ((left == Rock && right == Scissors) ||
+        (left == Paper && right == Rock) ||
+        (left == Scissors && right == Paper)) {
         return 1;
     }
     return -1;

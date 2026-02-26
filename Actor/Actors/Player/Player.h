@@ -6,16 +6,12 @@
 #define GAME_PLAYER_H
 #include "Actor/Actor.h"
 #include "State/State.h"
+#include "utils/Utils.h"
 using namespace std;
 
 
 class Player : public Actor {
     public:
-    enum Mode {
-        Rock,
-        Paper,
-        Scissors
-    };
     Player(const string& name, const Vector& startPosition, Error& err);
     ~Player();
 

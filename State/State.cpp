@@ -386,53 +386,6 @@ void State::startEventLoop() {
     deferActorMutations = false;
 }
 
-void State::removeActor(const string& name) {
-    if (deferActorMutations) {
-        pendingRemoveNames.insert(name);
-        for (auto it = pendingAddActors.begin(); it != pendingAddActors.end(); ++it) {
-            if (it->first == name) {
-                delete it->second;
-                pendingAddActors.erase(it);
-                break;
-            }
-        }
-        return;
-    }
-    auto it = actors.find(name);
-    if (it == actors.end()) {
-        return;
-    }
-    delete it->second;
-    actors.erase(it);
-}
-
-void State::removeActor(Actor* actor) {
-    if (actor == nullptr) {
-        return;
-    }
-    if (deferActorMutations) {
-        for (auto it = pendingAddActors.begin(); it != pendingAddActors.end(); ++it) {
-            if (it->second == actor) {
-                delete it->second;
-                pendingAddActors.erase(it);
-                return;
-            }
-        }
-        pendingRemoveActors.insert(actor);
-        return;
-    }
-    for (auto it = actors.begin(); it != actors.end(); ++it) {
-        if (it->second == actor) {
-            if (it->second == view) {
-                view = nullptr;
-            }
-            delete it->second;
-            actors.erase(it);
-            return;
-        }
-    }
-}
-
 void State::collisionHandler() {
     vector<Player*> players;
     vector<MiniMe*> minimes;
@@ -534,6 +487,53 @@ void State::handlePlayersCollisions(const vector<Player*>& players) {
                     left->hp -= 3;
                 }
             }
+        }
+    }
+}
+
+void State::removeActor(const string& name) {
+    if (deferActorMutations) {
+        pendingRemoveNames.insert(name);
+        for (auto it = pendingAddActors.begin(); it != pendingAddActors.end(); ++it) {
+            if (it->first == name) {
+                delete it->second;
+                pendingAddActors.erase(it);
+                break;
+            }
+        }
+        return;
+    }
+    auto it = actors.find(name);
+    if (it == actors.end()) {
+        return;
+    }
+    delete it->second;
+    actors.erase(it);
+}
+
+void State::removeActor(Actor* actor) {
+    if (actor == nullptr) {
+        return;
+    }
+    if (deferActorMutations) {
+        for (auto it = pendingAddActors.begin(); it != pendingAddActors.end(); ++it) {
+            if (it->second == actor) {
+                delete it->second;
+                pendingAddActors.erase(it);
+                return;
+            }
+        }
+        pendingRemoveActors.insert(actor);
+        return;
+    }
+    for (auto it = actors.begin(); it != actors.end(); ++it) {
+        if (it->second == actor) {
+            if (it->second == view) {
+                view = nullptr;
+            }
+            delete it->second;
+            actors.erase(it);
+            return;
         }
     }
 }
