@@ -60,7 +60,7 @@ int main()
 
     Player* p2 = new Player("player_2", Vector(1440, 540), err);
     if (err.status == failure) {
-        delete p2;
+        delete p2; 
         cerr << "Failed to create player 2: " << err.message << endl;
         return 1;
     }
