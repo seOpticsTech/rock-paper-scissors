@@ -5,6 +5,7 @@
 #include "Player.h"
 #include "State/State.h"
 #include "Actor/Actors/MiniMe/MiniMe.h"
+#include "RemoteEventHandling/RemoteEventHandling.h"
 #include "Texture/Texture.h"
 #include <SDL2/SDL_gamecontroller.h>
 #include <iostream>
@@ -149,6 +150,15 @@ Player::Player(const string& name, const Vector& startPosition, Error& err)
             action(actor, event);
         };
     };
+    auto isControlledByRemoteDecorator = [this](const Actor::eventAction& action) {
+        return [this, action](Actor& actor, const SDL_Event& event) {
+            static_cast<void>(event);
+            if (controlMode != REMOTE) {
+                return;
+            }
+            action(actor, event);
+        };
+    };
 
 
     auto setRock = [this](Actor& actor, const SDL_Event& event) {
@@ -204,6 +214,15 @@ Player::Player(const string& name, const Vector& startPosition, Error& err)
     eventActions[Actor::controllerButtonDown][SDL_CONTROLLER_BUTTON_A] = isControlledByThisGamepadDecorator(setRock);
     eventActions[Actor::controllerButtonDown][SDL_CONTROLLER_BUTTON_B] = isControlledByThisGamepadDecorator(setPaper);
     eventActions[Actor::controllerButtonDown][SDL_CONTROLLER_BUTTON_X] = isControlledByThisGamepadDecorator(setScissors);
+
+    // Remote event handlers
+    eventActions[Actor::remote][RemoteEventHandling::RemoteActionLeft] = isControlledByRemoteDecorator(moveLeft);
+    eventActions[Actor::remote][RemoteEventHandling::RemoteActionRight] = isControlledByRemoteDecorator(moveRight);
+    eventActions[Actor::remote][RemoteEventHandling::RemoteActionUp] = isControlledByRemoteDecorator(moveUp);
+    eventActions[Actor::remote][RemoteEventHandling::RemoteActionDown] = isControlledByRemoteDecorator(moveDown);
+    eventActions[Actor::remote][RemoteEventHandling::RemoteActionRock] = isControlledByRemoteDecorator(setRock);
+    eventActions[Actor::remote][RemoteEventHandling::RemoteActionPaper] = isControlledByRemoteDecorator(setPaper);
+    eventActions[Actor::remote][RemoteEventHandling::RemoteActionScissors] = isControlledByRemoteDecorator(setScissors);
 
 
     eventActions[Actor::quit][0] = [](Actor& actor, const SDL_Event& event) {

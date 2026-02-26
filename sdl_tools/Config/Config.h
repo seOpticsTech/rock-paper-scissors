@@ -7,13 +7,21 @@
 
 #include <SDL2/SDL.h>
 #include <functional>
+#include <cstdint>
 #include <string>
 
 using namespace std;
 
 enum ControlMode {
     KEYBOARD,
-    GAMEPAD
+    GAMEPAD,
+    REMOTE
+};
+
+struct ConnectionDetails {
+    string remoteHost;
+    uint16_t localPort;
+    uint16_t remotePort;
 };
 
 struct Config {
@@ -30,6 +38,9 @@ struct Config {
     int fps;
     function<int(SDL_Event *)> pollEvent;
     ControlMode controlMode;
+    string localPlayer;
+    bool toConnect;
+    ConnectionDetails connectionDetails;
 };
 
 Config getDefaultConfig();

@@ -20,5 +20,10 @@ Config getDefaultConfig() {
     config.fps = 60;
     config.pollEvent = SDL_PollEvent;
     config.controlMode = KEYBOARD;
+    config.localPlayer = "player_1";
+    config.toConnect = false;
+    config.connectionDetails.remoteHost = "127.0.0.1";
+    config.connectionDetails.localPort = 4000;
+    config.connectionDetails.remotePort = 4001;
     return config;
 }

@@ -37,6 +37,8 @@ add_executable(game main.cpp
         Actor/Actors/MiniMe/MiniMe.cpp
         utils/Utils.h
         utils/Utils.cpp
+        RemoteEventHandling/RemoteEventHandling.h
+        RemoteEventHandling/RemoteEventHandling.cpp
 )
 
 target_link_libraries(game

@@ -7,6 +7,7 @@
 #include "Actor/Actors/Player/Player.h"
 #include "Actor/Actors/MiniMe/MiniMe.h"
 #include "utils/Utils.h"
+#include "RemoteEventHandling/RemoteEventHandling.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_gamecontroller.h>
 #include <map>
@@ -47,6 +48,10 @@ State& State::get() {
 function<Error(const SDL_Event&)> getEventHandler(Actor::EventGroup eventGroup, function<Uint32(const SDL_Event&)> getKey) {
     return [eventGroup, getKey](const SDL_Event& event) {
         State& state = State::get();
+        if (eventGroup == Actor::remote && event.user.code == RemoteEventHandling::RemoteActionQuit) {
+            state.running = false;
+            return Error::Success();
+        }
         for (pair<string, Actor*> nameActor : state.actors) {
             Actor* actor = nameActor.second;
             if (actor == nullptr) {
@@ -91,8 +96,6 @@ State::State(const Config& config, Error& err)
 
     int requiredControllers = 0;
     if (controlMode == GAMEPAD) {
-        requiredControllers = 2;
-    } else {
         requiredControllers = 1;
     }
 
@@ -188,6 +191,9 @@ void State::startEventLoop() {
     });
     typeToHandler[SDL_CONTROLLERBUTTONUP] = getEventHandler(Actor::controllerButtonUp, [](const SDL_Event& event) {
         return static_cast<Uint32>(event.cbutton.button);
+    });
+    typeToHandler[SDL_USEREVENT] = getEventHandler(Actor::remote, [](const SDL_Event& event) {
+        return static_cast<Uint32>(event.user.code);
     });
 
     int frameCounter = 0;

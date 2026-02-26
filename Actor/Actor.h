@@ -36,6 +36,7 @@ public:
         joystick,
         controllerButtonDown,
         controllerButtonUp,
+        remote,
         touch,
         gesture,
         drop,
