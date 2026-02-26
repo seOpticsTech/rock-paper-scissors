@@ -48,6 +48,7 @@ target_include_directories(game PRIVATE
 )
 
 target_compile_options(game PRIVATE
+        -g
         -Wall
         -Wextra
         -Wpedantic
