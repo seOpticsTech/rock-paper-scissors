@@ -432,7 +432,6 @@ void State::removeActor(Actor* actor) {
     }
 }
 
-
 bool rectanglesOverlap(double ax, double ay, int aw, int ah, double bx, double by, int bw, int bh) {
     return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
 }
@@ -696,4 +695,3 @@ void State::applyDeferredActors() {
     }
     pendingAddActors.clear();
 }
-
