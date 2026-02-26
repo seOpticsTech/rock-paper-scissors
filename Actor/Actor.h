@@ -6,7 +6,6 @@
 #define GAME_ACTOR_H
 #include "Texture/Texture.h"
 #include "Vector/Vector.h"
-#include "Config/Config.h"
 #include <SDL2/SDL.h>
 #include <functional>
 #include <map>
@@ -57,8 +56,6 @@ public:
     map<string, string> animations;
     map<EventGroup, map<Uint32, eventAction>> eventActions;
     function<void(Actor&)> onRender;
-    ControlMode controlMode;
-    SDL_JoystickID controllerId;
 };
 
 

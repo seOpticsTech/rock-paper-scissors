@@ -13,9 +13,7 @@ Actor::Actor() :
     currentAnimation(),
     animations(),
     eventActions(),
-    onRender(nullptr),
-    controlMode(KEYBOARD),
-    controllerId(static_cast<SDL_JoystickID>(-1))
+    onRender(nullptr)
     {}
 
 Actor::~Actor() = default;

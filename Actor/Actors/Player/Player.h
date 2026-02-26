@@ -6,6 +6,7 @@
 #define GAME_PLAYER_H
 #include "Actor/Actor.h"
 #include "State/State.h"
+#include "Config/Config.h"
 #include "utils/Utils.h"
 using namespace std;
 
@@ -17,6 +18,8 @@ class Player : public Actor {
 
     Actor::eventAction genOnKeyDown(const Vector& v);
 
+    ControlMode controlMode;
+    SDL_JoystickID controllerId;
     Mode mode;
     Uint32 lastSpawnMs;
     Uint32 lastModeChangeMs;

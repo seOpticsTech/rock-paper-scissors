@@ -14,9 +14,11 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "Actor/Actor.h"
+
 using namespace std;
 
-typedef Error (*eventHandler)(const SDL_Event&);
+typedef function<Error(const SDL_Event&)> eventHandler;
 
 State* State::instance = nullptr;
 
@@ -42,138 +44,27 @@ State& State::get() {
     return *instance;
 }
 
-Error handleQuitEvent(const SDL_Event& event) {
-    static_cast<void>(event);
-    State& state = State::get();
-    for (pair<string, Actor*> nameActor : state.actors) {
-        Actor* actor = nameActor.second;
-        if (actor == nullptr) {
-            continue;
+function<Error(const SDL_Event&)> getEventHandler(Actor::EventGroup eventGroup, function<Uint32(const SDL_Event&)> getKey) {
+    return [eventGroup, getKey](const SDL_Event& event) {
+        State& state = State::get();
+        for (pair<string, Actor*> nameActor : state.actors) {
+            Actor* actor = nameActor.second;
+            if (actor == nullptr) {
+                continue;
+            }
+            auto groupIt = actor->eventActions.find(eventGroup);
+            if (groupIt == actor->eventActions.end()) {
+                continue;
+            }
+            Uint32 key = getKey(event);
+            auto actionIt = groupIt->second.find(key);
+            if (actionIt == groupIt->second.end() || actionIt->second == nullptr) {
+                continue;
+            }
+            actionIt->second(*actor, event);
         }
-        auto groupIt = actor->eventActions.find(Actor::quit);
-        if (groupIt == actor->eventActions.end()) {
-            continue;
-        }
-        Uint32 key = 0;
-        auto actionIt = groupIt->second.find(key);
-        if (actionIt == groupIt->second.end() || actionIt->second == nullptr) {
-            continue;
-        }
-        actionIt->second(*actor, event);
-    }
-    state.running = false;
-    return Error::Success();
-}
-
-Error handleKeyDownEvent(const SDL_Event& event) {
-    State& state = State::get();
-    for (pair<string, Actor*> nameActor : state.actors) {
-        Actor* actor = nameActor.second;
-        if (actor == nullptr) {
-            continue;
-        }
-        if (actor->controlMode != KEYBOARD) {
-            continue;
-        }
-        auto groupIt = actor->eventActions.find(Actor::keyDown);
-        if (groupIt == actor->eventActions.end()) {
-            continue;
-        }
-        Uint32 key = static_cast<Uint32>(event.key.keysym.sym);
-        auto actionIt = groupIt->second.find(key);
-        if (actionIt == groupIt->second.end() || actionIt->second == nullptr) {
-            continue;
-        }
-        actionIt->second(*actor, event);
-    }
-    return Error::Success();
-}
-
-Error handleKeyUpEvent(const SDL_Event& event) {
-    State& state = State::get();
-    for (pair<string, Actor*> nameActor : state.actors) {
-        Actor* actor = nameActor.second;
-        if (actor == nullptr) {
-            continue;
-        }
-        if (actor->controlMode != KEYBOARD) {
-            continue;
-        }
-        auto groupIt = actor->eventActions.find(Actor::keyUp);
-        if (groupIt == actor->eventActions.end()) {
-            continue;
-        }
-        Uint32 key = static_cast<Uint32>(event.key.keysym.sym);
-        auto actionIt = groupIt->second.find(key);
-        if (actionIt == groupIt->second.end() || actionIt->second == nullptr) {
-            continue;
-        }
-        actionIt->second(*actor, event);
-    }
-    return Error::Success();
-}
-
-static bool mapControllerButtonToKey(const SDL_Event& event, SDL_Keycode& key) {
-    if (event.type != SDL_CONTROLLERBUTTONDOWN && event.type != SDL_CONTROLLERBUTTONUP) {
-        return false;
-    }
-    switch (event.cbutton.button) {
-        case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
-            key = SDLK_LEFT;
-            return true;
-        case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
-            key = SDLK_RIGHT;
-            return true;
-        case SDL_CONTROLLER_BUTTON_DPAD_UP:
-            key = SDLK_UP;
-            return true;
-        case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
-            key = SDLK_DOWN;
-            return true;
-        case SDL_CONTROLLER_BUTTON_A:
-            key = SDLK_z;
-            return true;
-        case SDL_CONTROLLER_BUTTON_B:
-            key = SDLK_x;
-            return true;
-        case SDL_CONTROLLER_BUTTON_X:
-            key = SDLK_c;
-            return true;
-        default:
-            return false;
-    }
-}
-
-Error handleControllerButtonEvent(const SDL_Event& event) {
-    State& state = State::get();
-    SDL_Keycode key;
-    if (!mapControllerButtonToKey(event, key)) {
         return Error::Success();
-    }
-    Actor::EventGroup group = event.type == SDL_CONTROLLERBUTTONDOWN ? Actor::keyDown : Actor::keyUp;
-    Uint32 keyCode = static_cast<Uint32>(key);
-    for (pair<string, Actor*> nameActor : state.actors) {
-        Actor* actor = nameActor.second;
-        if (actor == nullptr) {
-            continue;
-        }
-        if (actor->controlMode != GAMEPAD) {
-            continue;
-        }
-        if (actor->controllerId != event.cbutton.which) {
-            continue;
-        }
-        auto groupIt = actor->eventActions.find(group);
-        if (groupIt == actor->eventActions.end()) {
-            continue;
-        }
-        auto actionIt = groupIt->second.find(keyCode);
-        if (actionIt == groupIt->second.end() || actionIt->second == nullptr) {
-            continue;
-        }
-        actionIt->second(*actor, event);
-    }
-    return Error::Success();
+    };
 }
 
 State::State(const Config& config, Error& err)
@@ -238,6 +129,9 @@ State::State(const Config& config, Error& err)
     if (!registerActor("view", view, err)) {
         return;
     }
+    view->eventActions[Actor::quit][0] = [this](Actor& actor, const SDL_Event& event) {
+        running = false;
+    };
 }
 
 State::~State() {
@@ -279,11 +173,27 @@ void State::startEventLoop() {
 
     SDL_Event event;
     map<Uint32, eventHandler> typeToHandler;
-    typeToHandler[SDL_QUIT] = handleQuitEvent;
-    typeToHandler[SDL_KEYDOWN] = handleKeyDownEvent;
-    typeToHandler[SDL_KEYUP] = handleKeyUpEvent;
-    typeToHandler[SDL_CONTROLLERBUTTONDOWN] = handleControllerButtonEvent;
-    typeToHandler[SDL_CONTROLLERBUTTONUP] = handleControllerButtonEvent;
+    // typeToHandler[SDL_QUIT] = handleQuitEvent;
+    // typeToHandler[SDL_KEYDOWN] = handleKeyDownEvent;
+    // typeToHandler[SDL_KEYUP] = handleKeyUpEvent;
+    // typeToHandler[SDL_CONTROLLERBUTTONDOWN] = handleControllerButtonEvent;
+    // typeToHandler[SDL_CONTROLLERBUTTONUP] = handleControllerButtonEvent;
+    typeToHandler[SDL_QUIT] = getEventHandler(Actor::quit, [](const SDL_Event& event) {
+        static_cast<void>(event);
+        return static_cast<Uint32>(0);
+    });
+    typeToHandler[SDL_KEYDOWN] = getEventHandler(Actor::keyDown, [](const SDL_Event& event) {
+        return static_cast<Uint32>(event.key.keysym.sym);
+    });
+    typeToHandler[SDL_KEYUP] = getEventHandler(Actor::keyUp, [](const SDL_Event& event) {
+        return static_cast<Uint32>(event.key.keysym.sym);
+    });
+    typeToHandler[SDL_CONTROLLERBUTTONDOWN] = getEventHandler(Actor::controller, [](const SDL_Event& event) {
+        return static_cast<Uint32>(event.cbutton.button);
+    });
+    typeToHandler[SDL_CONTROLLERBUTTONUP] = getEventHandler(Actor::controller, [](const SDL_Event& event) {
+        return static_cast<Uint32>(event.cbutton.button);
+    });
 
     int frameCounter = 0;
     unordered_map<string, Uint32> animationLastAdvanceMs;
