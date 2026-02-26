@@ -6,6 +6,7 @@
 #include "Actor/Actors/View/View.h"
 #include "Actor/Actors/Player/Player.h"
 #include "Actor/Actors/MiniMe/MiniMe.h"
+#include "utils/Utils.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_gamecontroller.h>
 #include <map>
@@ -432,42 +433,7 @@ void State::removeActor(Actor* actor) {
     }
 }
 
-bool rectanglesOverlap(double ax, double ay, int aw, int ah, double bx, double by, int bw, int bh) {
-    return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
-}
-
-int rpsResult(Player::Mode left, Player::Mode right) {
-    if (left == right) {
-        return 0;
-    }
-    if ((left == Player::Rock && right == Player::Scissors) ||
-        (left == Player::Paper && right == Player::Rock) ||
-        (left == Player::Scissors && right == Player::Paper)) {
-        return 1;
-        }
-    return -1;
-}
-
-int rpsResult(Player::Mode left, MiniMe::Mode right) {
-    if (left == Player::Rock && right == MiniMe::Rock) {
-        return 0;
-    }
-    if (left == Player::Paper && right == MiniMe::Paper) {
-        return 0;
-    }
-    if (left == Player::Scissors && right == MiniMe::Scissors) {
-        return 0;
-    }
-    if ((left == Player::Rock && right == MiniMe::Scissors) ||
-        (left == Player::Paper && right == MiniMe::Rock) ||
-        (left == Player::Scissors && right == MiniMe::Paper)) {
-        return 1;
-        }
-    return -1;
-}
-
 void State::collisionHandler() {
-    Error err;
     vector<Player*> players;
     vector<MiniMe*> minimes;
     for (pair<string, Actor*> nameActor : actors) {
@@ -484,6 +450,12 @@ void State::collisionHandler() {
         }
     }
 
+    handleMiniMesCollisions(players, minimes);
+    handlePlayersCollisions(players);
+}
+
+void State::handleMiniMesCollisions(const vector<Player*>& players, const vector<MiniMe*>& minimes) {
+    Error err;
     unordered_set<Actor*> toDelete;
 
     for (Player* player : players) {
@@ -523,34 +495,46 @@ void State::collisionHandler() {
             }
         }
     }
-
-    if (players.size() >= 2) {
-        Player* left = players[0];
-        Player* right = players[1];
-        if (!toDelete.contains(left) && !toDelete.contains(right)) {
-            int leftWidth = 0;
-            int leftHeight = 0;
-            int rightWidth = 0;
-            int rightHeight = 0;
-            if (left->getSize(leftWidth, leftHeight, err) &&
-                right->getSize(rightWidth, rightHeight, err)) {
-                if (rectanglesOverlap(left->position[0], left->position[1], leftWidth, leftHeight,
-                                      right->position[0], right->position[1], rightWidth, rightHeight)) {
-                    int result = rpsResult(left->mode, right->mode);
-                    if (result > 0) {
-                        right->hp -= 3;
-                    } else if (result < 0) {
-                        left->hp -= 3;
-                    }
-                }
-            } else if (err.status == failure) {
-                cerr << "Player size error: " << err.message << endl;
-            }
-        }
-    }
-
     for (Actor* actor : toDelete) {
         removeActor(actor);
+    }
+}
+
+void State::handlePlayersCollisions(const vector<Player*>& players) {
+    if (players.size() < 2) {
+        return;
+    }
+    Error err;
+    for (size_t i = 0; i < players.size(); ++i) {
+        Player* left = players[i];
+        int leftWidth = 0;
+        int leftHeight = 0;
+        if (!left->getSize(leftWidth, leftHeight, err)) {
+            if (err.status == failure) {
+                cerr << "Player size error: " << err.message << endl;
+            }
+            continue;
+        }
+        for (size_t j = i + 1; j < players.size(); ++j) {
+            Player* right = players[j];
+            int rightWidth = 0;
+            int rightHeight = 0;
+            if (!right->getSize(rightWidth, rightHeight, err)) {
+                if (err.status == failure) {
+                    cerr << "Player size error: " << err.message << endl;
+                }
+                continue;
+            }
+            if (rectanglesOverlap(left->position[0], left->position[1], leftWidth, leftHeight,
+                                  right->position[0], right->position[1], rightWidth, rightHeight)) {
+                int result = rpsResult(left->mode, right->mode);
+                if (result > 0) {
+                    right->hp -= 3;
+                } else if (result < 0) {
+                    left->hp -= 3;
+                }
+            }
+        }
     }
 }
 

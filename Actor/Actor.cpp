@@ -39,7 +39,8 @@ bool Actor::getSize(int& width, int& height, Error& err) const {
         return false;
     }
     Animation& anim = animIt->second;
-    if (!anim.iterator) {
+    auto list = !anim.iterator;
+    if (list == nullptr || list->empty()) {
         err = Error::New(string("Animation has no frames: ") + actorAnimIt->second);
         return false;
     }
